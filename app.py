@@ -1078,7 +1078,7 @@ with workspace_panel:
 
     with col_side2:
         if st.button("🔮 Future Self", use_container_width=True):
-            st.session_state["future_self_message"] = generate_future_self(momentum_score, completed_tasks, total_tasks)
+            st.session_state["future_self_message"] = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
             st.rerun()
 
     st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Performance Diagnostics</h3>", unsafe_allow_html=True)

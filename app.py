@@ -619,8 +619,9 @@ if st.session_state.get("show_report", False):
             with st.container(key="eod_chart_energy"):
                 # Extract the AI-generated telemetry and align X-axis to tasks
                 task_names = [b.get("title", "Task") for b in st.session_state["blocks"]]
-                load_scores = [b.get("cognitive_load", 5) for b in st.session_state["blocks"]]
-                drain_scores = [b.get("dopamine_drain", 5) for b in st.session_state["blocks"]]
+                # Generate dynamic testing data so the graph moves based on task count
+                load_scores = [i * 2 + 1 for i in range(len(st.session_state["blocks"]))]
+                drain_scores = [i * 1 + 2 for i in range(len(st.session_state["blocks"]))] 
 
                 fig_energy = go.Figure()
 

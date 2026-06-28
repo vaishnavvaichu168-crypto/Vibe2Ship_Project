@@ -609,14 +609,14 @@ if st.session_state.get("show_report", False):
             )
             st.plotly_chart(fig_hero, use_container_width=True, config={'displayModeBar': False}, key="momentum_fig")
 
-    # --- Micro-stagger for the bottom row ---
-    time.sleep(0.4)
-
-    col_rep1, col_rep2 = st.columns([2, 1], gap="large")
-
-    with col_rep1:
-            st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>AI Task Telemetry</h4>", unsafe_allow_html=True)
-            with st.container(key="eod_chart_energy"):
+     # --- Micro-stagger for the bottom row ---
+        time.sleep(0.4)
+    
+        col_rep1, col_rep2 = st.columns([2, 1], gap="large")
+    
+        with col_rep1:
+                st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>AI Task Telemetry</h4>", unsafe_allow_html=True)
+                with st.container(key="eod_chart_energy"):
                 # Extract the AI-generated telemetry and align X-axis to tasks
                 task_names = [f"Task {i+1}" for i in range(len(st.session_state["blocks"]))]
                 # Generate dynamic testing data so the graph moves based on task count

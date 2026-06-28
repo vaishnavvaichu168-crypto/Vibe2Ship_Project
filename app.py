@@ -609,17 +609,35 @@ if st.session_state.get("show_report", False):
             )
             st.plotly_chart(fig_hero, use_container_width=True, config={'displayModeBar': False}, key="momentum_fig")
 
-     # --- Micro-stagger for the bottom row ---
-        time.sleep(0.4)
-    
+# --- Micro-stagger for the bottom row ---
+    time.sleep(0.4)
+
+    # 1. THE CHECK: Are there any tasks?
+    if "blocks" not in st.session_state or len(st.session_state["blocks"]) == 0:
+        
+        # 2. THE EMPTY STATE
+        st.markdown("""
+            <div style='
+                text-align: center; 
+                padding: 40px; 
+                background-color: rgba(30, 41, 59, 0.3); 
+                border-radius: 12px; 
+                border: 1px dashed #475569;
+                margin-top: 20px;
+            '>
+                <h3 style='color: #94A3B8; font-family: monospace; letter-spacing: 2px;'>SYSTEM IDLE</h3>
+                <p style='color: #64748B; font-size: 14px;'>The focus pipeline is currently empty. Inject tasks via the Control Desk to spin up the telemetry engine.</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+    # 3. THE ACTIVE STATE
+    else:
         col_rep1, col_rep2 = st.columns([2, 1], gap="large")
-    
+
         with col_rep1:
-                st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>AI Task Telemetry</h4>", unsafe_allow_html=True)
-                with st.container(key="eod_chart_energy"):
-                # Extract the AI-generated telemetry and align X-axis to tasks
+            st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>AI Task Telemetry</h4>", unsafe_allow_html=True)
+            with st.container(key="eod_chart_energy"):
                 task_names = [f"Task {i+1}" for i in range(len(st.session_state["blocks"]))]
-                # Generate dynamic testing data so the graph moves based on task count
                 load_scores = [i * 2 + 1 for i in range(len(st.session_state["blocks"]))]
                 drain_scores = [i * 1 + 2 for i in range(len(st.session_state["blocks"]))] 
 

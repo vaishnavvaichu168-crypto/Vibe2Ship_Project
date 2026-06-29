@@ -133,18 +133,7 @@ def generate_future_self(momentum_score: int, completed_tasks: int, total_tasks:
     # 2. NO TRY/EXCEPT SHIELD. If it fails, we want it to crash and tell us why!
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
     
-    try:
-        # We put the API call inside the "try" block
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",  # 🚨 IMPORTANT: Change this from 2.0 to 1.5 to guarantee it works!
-            contents=future_prompt
-        )
-        return response.text
-    
-    except Exception as e:
-        # If Google rejects it, this shield catches the error and returns this text instead of crashing
-        print(f"Future Self Error: {e}") # This prints the error secretly to your logs so you can see it later
-        return "Future projection unavailable. Increase daily focus completion to improve long-term outcomes."
+
 
 def generate_opportunity_radar(
     momentum_score: int,

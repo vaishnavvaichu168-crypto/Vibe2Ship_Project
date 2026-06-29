@@ -27,49 +27,33 @@ from engine import (
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def mutate_schedule_with_ai(current_blocks, anomaly_text):
-    """Sends the schedule context to Gemini to intelligently restructure it."""
-
     prompt = f"""
     You are an elite cognitive scheduling AI for a high-performance dashboard.
-    The user has experienced a schedule anomaly: "{anomaly_text}"
+    The user experienced a schedule anomaly: "{anomaly_text}"
 
-    Here is their current schedule array in JSON format:
+    Current schedule array:
     {json.dumps(current_blocks, indent=2)}
 
     CRITICAL INSTRUCTIONS:
-    1. Act as a tactical planner. Read the anomaly and the current schedule.
-    2. TIME MATH IS MANDATORY: If the user is running late, you MUST physically rewrite the 'time' values for all subsequent tasks.
-    3. If the anomaly implies high fatigue, autonomously insert a new JSON block for a 15-minute 'Quiet Decompression' break before the next heavy task.
-    4. You MUST maintain the EXACT JSON keys provided in the current schedule.
-    5. Do NOT change the time of any task where "state" is "completed". Only mutate "ready" tasks.
-    6. Return ONLY the raw JSON array containing the new schedule. Do not wrap it in markdown.
+    1. Act as a tactical planner. 
+    2. TIME MATH IS MANDATORY: Shift subsequent task times to absorb the delay.
+    3. If the delay is severe, compress or delete upcoming 'break' slots to save the core focus blocks.
+    4. Maintain EXACT JSON keys. Do NOT change the time of tasks where "state" is "completed".
+    5. RETURN A JSON OBJECT WITH EXACTLY TWO KEYS:
+       - "tactical_brief": A brutal, 1-2 sentence explanation of exactly what trade-offs you made to save their day (e.g., "You lost 45 mins. I deleted your 3PM buffer and shifted Debugging to 5:30PM to keep the pipeline alive.").
+       - "schedule": The raw JSON array containing the mutated schedule blocks.
     """
 
     try:
-        # Using the modern SDK generate_content syntax and the 2.5 model
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-            ),
+            config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
-
-        # 🚨 X-RAY VISION: Watch the terminal to see it think!
-        print("\n=== 🧠 GEMINI RAW OUTPUT ===")
-        print(response.text)
-        print("============================\n")
-
-        return json.loads(response.text)
+        return json.loads(response.text) # Now returns a dictionary, not just a list
     except Exception as e:
-        error_string = str(e)
-        if "429" in error_string or "RESOURCE_EXHAUSTED" in error_string:
-            st.warning("⏳ AI Engine cooling down (Free Tier Rate Limit). Please wait 60 seconds and try again.")
-        else:
-            st.error(f"Neural Link Failed: {e}")
-
         print(f"ERROR: {e}")
-        return current_blocks
+        return {"tactical_brief": "Core system error. Fallback initiated.", "schedule": current_blocks}
 # ==========================================================
 # ==========================================================
 # 1. Page Configuration & Layout Optimization
@@ -983,6 +967,20 @@ with workspace_main:
                     "last_active_date": st.session_state.get("last_active_date", "")
                 }, f)
             st.rerun()
+            # ==========================================
+            # 🚨 AI TACTICAL PIVOT BANNER (THE WOW FACTOR)
+            # ==========================================
+            if st.session_state.get("ai_pivot_brief"):
+                st.markdown(f"""
+                    <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.4); border-left: 4px solid #EF4444; border-radius: 8px; padding: 18px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(220, 38, 38, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="color: #F87171; font-weight: 800; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;">⚡ Tactical Pivot Executed</span>
+                        </div>
+                        <div style="color: #FECACA; font-size: 15px; font-weight: 500; line-height: 1.5;">
+                            "{st.session_state['ai_pivot_brief']}"
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
     st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Today's schedule</h3>", unsafe_allow_html=True)
 
     if optimize_execution and raw_task_stream:
@@ -1063,10 +1061,13 @@ with workspace_main:
     if reoptimize and disruption_event.strip():
         with st.spinner("🧠 Neural link active. Passing context to Gemini..."):
 
-            # 1. Fetch new blocks from the AI
-            updated_blocks = mutate_schedule_with_ai(st.session_state["blocks"], disruption_event.strip())
+            # 1. Fetch the new payload object from the AI
+            ai_payload = mutate_schedule_with_ai(st.session_state["blocks"], disruption_event.strip())
+            
+            # 2. Extract components
+            updated_blocks = ai_payload.get("schedule", st.session_state["blocks"])
+            tactical_brief = ai_payload.get("tactical_brief", "Schedule realigned.")
 
-            # 2. TRAP THE ERROR: Only trigger the page refresh if the AI actually changed something
             if updated_blocks != st.session_state["blocks"]:
                 
                 # --- IMMUTABLE PAST IMPLEMENTATION ---
@@ -1074,8 +1075,10 @@ with workspace_main:
                 new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
                 
                 st.session_state["blocks"] = completed_tasks + new_future_tasks
-                st.toast("🚨 AI PIVOT INITIATED: Future timeline overwritten.", icon="🔥")
-                # -------------------------------------
+                
+                # --- THE WOW FACTOR: Save the brief to session state ---
+                st.session_state["ai_pivot_brief"] = tactical_brief
+                # -------------------------------------------------------
 
                 with open(DATA_FILE, "w") as f:
                     json.dump({

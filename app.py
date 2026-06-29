@@ -50,10 +50,18 @@ def mutate_schedule_with_ai(current_blocks, anomaly_text):
             contents=prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
-        return json.loads(response.text) # Now returns a dictionary, not just a list
+        
+        # BRUTAL PARSING: Strip markdown blocks if the AI disobeys raw JSON rules
+        raw_text = response.text.replace("```json", "").replace("```", "").strip()
+        
+        return json.loads(raw_text)
+        
     except Exception as e:
-        print(f"ERROR: {e}")
-        return {"tactical_brief": "Core system error. Fallback initiated.", "schedule": current_blocks}
+        print(f"ERROR PARSING AI RESPONSE: {e}")
+        return {
+            "tactical_brief": "Core system parsing error. Timeline integrity maintained, but re-optimization failed.", 
+            "schedule": current_blocks
+        }
 # ==========================================================
 # ==========================================================
 # 1. Page Configuration & Layout Optimization
@@ -1066,19 +1074,19 @@ with workspace_main:
             
             # 2. Extract components
             updated_blocks = ai_payload.get("schedule", st.session_state["blocks"])
-            tactical_brief = ai_payload.get("tactical_brief", "Schedule realigned.")
+            tactical_brief = ai_payload.get("tactical_brief", "Anomaly analyzed. Timeline remains structurally sound.")
 
+            # --- THE WOW FACTOR: Force the brief into memory unconditionally ---
+            st.session_state["ai_pivot_brief"] = tactical_brief
+            # -------------------------------------------------------------------
+
+            # 3. Only mutate the actual schedule blocks if the AI changed them
             if updated_blocks != st.session_state["blocks"]:
                 
-                # --- IMMUTABLE PAST IMPLEMENTATION ---
                 completed_tasks = [task for task in st.session_state["blocks"] if task.get("state") == "completed"]
                 new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
                 
                 st.session_state["blocks"] = completed_tasks + new_future_tasks
-                
-                # --- THE WOW FACTOR: Save the brief to session state ---
-                st.session_state["ai_pivot_brief"] = tactical_brief
-                # -------------------------------------------------------
 
                 with open(DATA_FILE, "w") as f:
                     json.dump({
@@ -1087,7 +1095,7 @@ with workspace_main:
                         "last_active_date": st.session_state.get("last_active_date", "")
                     }, f)
 
-                st.rerun()
+            st.rerun()
     
         # ##########################################################
 

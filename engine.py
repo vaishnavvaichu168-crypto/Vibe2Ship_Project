@@ -118,45 +118,26 @@ def generate_ai_coach(
         print(f"Coach Engine Error: {e}")
         return "System traffic high. Keep pushing forward and focus on the immediate next block."
 
-def generate_future_self(
-    momentum_score: int,
-    completed_tasks: int,
-    total_tasks: int,
-    tasks_list: list  # <--- Added this to give the AI context!
-) -> str:
-    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-
-    # Extract just the task titles so the AI knows WHAT the user is actually building
+def generate_future_self(momentum_score: int, completed_tasks: int, total_tasks: int, tasks_list: list) -> str:
+    import streamlit as st
+    
+    # 1. Grab the exact task names
     task_context = [task.get("title", "Unknown Task") for task in tasks_list if isinstance(task, dict)]
-    print(f"\n=== DEBUG: TASKS PASSED TO FUTURE SELF ===\n{task_context}\n==========================================\n")
+    
     future_prompt = f"""
-    You are a predictive AI simulator tracking an engineer's project trajectory.
-
-    Current State:
-    - Momentum Score: {momentum_score}/100
-    - Tasks Completed: {completed_tasks}/{total_tasks}
-    - Specific Projects/Tasks in Pipeline: {task_context}
-
-    CRITICAL JUDGING REQUIREMENT: You MUST explicitly reference the actual tasks or project names from the pipeline list above in your prediction. Do not give generic advice. Tell the user exactly what will happen to these specific systems or topics (e.g., if they have 'DBMS practice', mention their database proficiency or schema design) in 30 days if this 50% momentum trend continues.
-
-    Return:
-    - One highly specific, blunt 30-day outcome.
-    - One tactical architectural recommendation.
-
-    Maximum 60 words. Be sharp, context-driven, and direct.
+    Current State: Momentum {momentum_score}/100, Tasks {completed_tasks}/{total_tasks}.
+    Pipeline: {task_context}.
+    Give a highly specific, blunt 30-day outcome based on these specific tasks. Max 60 words.
     """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=future_prompt
-        )
-        return response.text
-    except Exception:
-        return (
-            "Future projection unavailable. "
-            "Increase daily focus completion to improve long-term outcomes."
-        )
+    # 2. NO TRY/EXCEPT SHIELD. If it fails, we want it to crash and tell us why!
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+    
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=future_prompt
+    )
+    return response.text
 
 def generate_opportunity_radar(
     momentum_score: int,

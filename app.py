@@ -1060,41 +1060,32 @@ with workspace_main:
     st.markdown("### 🌪️ Reality Changed?")
     disruption_event = st.text_area("Describe what happened:", placeholder="Example: Meeting ran 45 minutes late. I'm exhausted.")
     reoptimize = st.button("🔄 Re-Optimize Schedule", use_container_width=True)
-
     if reoptimize and disruption_event.strip():
         with st.spinner("🧠 Neural link active. Passing context to Gemini..."):
 
             # 1. Fetch new blocks from the AI
             updated_blocks = mutate_schedule_with_ai(st.session_state["blocks"], disruption_event.strip())
 
-        # 2. TRAP THE ERROR: Only trigger the page refresh if the AI actually changed something
-        if updated_blocks != st.session_state["blocks"]:
-            
-            # --- IMMUTABLE PAST IMPLEMENTATION ---
-            # 1. Separate the past from the future using your actual session state
-            completed_tasks = [task for task in st.session_state["blocks"] if task.get("state") == "completed"]
-            
-            # 2. Grab the newly optimized future tasks from the AI (ignoring any completed tasks it tried to return)
-            new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
-            
-            # 3. Merge them together safely! Overwrite state.
-            st.session_state["blocks"] = completed_tasks + new_future_tasks
-            
-            # 4. Trigger the toast alert
-            st.toast("🚨 AI PIVOT INITIATED: Future timeline overwritten.", icon="🔥")
-            # -------------------------------------
+            # 2. TRAP THE ERROR: Only trigger the page refresh if the AI actually changed something
+            if updated_blocks != st.session_state["blocks"]:
+                
+                # --- IMMUTABLE PAST IMPLEMENTATION ---
+                completed_tasks = [task for task in st.session_state["blocks"] if task.get("state") == "completed"]
+                new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
+                
+                st.session_state["blocks"] = completed_tasks + new_future_tasks
+                st.toast("🚨 AI PIVOT INITIATED: Future timeline overwritten.", icon="🔥")
+                # -------------------------------------
 
-            with open(DATA_FILE, "w") as f:
+                with open(DATA_FILE, "w") as f:
                     json.dump({
                         "blocks": st.session_state["blocks"],
                         "streak": st.session_state.get("streak", 1),
                         "last_active_date": st.session_state.get("last_active_date", "")
                     }, f)
 
-                st.rerun() # Safely trigger the UI cascade animation
-
-                # 4. Trigger full layout repaint and screen cascade animation
                 st.rerun()
+    
         # ##########################################################
 
 with workspace_panel:

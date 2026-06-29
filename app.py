@@ -1163,6 +1163,15 @@ with workspace_main:
                 block["state"] = "ready"
             if "skill_tracker" in st.session_state:
                 del st.session_state["skill_tracker"]
+                
+            # 🚨 ADDED HERE TOO: Make the demo mode survive a refresh!
+            with open(DATA_FILE, "w") as f:
+                json.dump({
+                    "blocks": st.session_state["blocks"],
+                    "streak": st.session_state.get("streak", 1),
+                    "last_active_date": st.session_state.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
+                }, f)
+                
             st.toast("🚀 Demo matrix compiled instantly!")
             st.rerun()
         elif client:

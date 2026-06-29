@@ -37,29 +37,30 @@ def mutate_schedule_with_ai(current_blocks, anomaly_text):
     CRITICAL INSTRUCTIONS:
     1. Act as a tactical planner. 
     2. TIME MATH IS MANDATORY: Shift subsequent task times to absorb the delay.
-    3. If the delay is severe, compress or delete upcoming 'break' slots to save the core focus blocks.
-    4. Maintain EXACT JSON keys. Do NOT change the time of tasks where "state" is "completed".
-    5. RETURN A JSON OBJECT WITH EXACTLY TWO KEYS:
-       - "tactical_brief": A brutal, 1-2 sentence explanation of exactly what trade-offs you made to save their day (e.g., "You lost 45 mins. I deleted your 3PM buffer and shifted Debugging to 5:30PM to keep the pipeline alive.").
-       - "schedule": The raw JSON array containing the mutated schedule blocks.
+    3. Maintain EXACT JSON keys. Do NOT change the time of tasks where "state" is "completed".
+    4. RETURN ONLY A RAW JSON DICTIONARY. NO PREAMBLE. NO MARKDOWN. EXACTLY TWO KEYS:
+       - "tactical_brief": A 1-2 sentence explanation of the trade-offs.
+       - "schedule": The raw JSON array containing the mutated blocks.
     """
 
     try:
+        # NOTE: Ensure this matches your specific SDK setup.
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
+            contents=prompt
         )
         
-        # BRUTAL PARSING: Strip markdown blocks if the AI disobeys raw JSON rules
-        raw_text = response.text.replace("```json", "").replace("```", "").strip()
+        # BRUTAL PARSING: Ignore markdown/text and extract the JSON object via Regex
+        match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        if not match:
+            raise ValueError("AI Hallucination: No valid JSON object found in response.")
         
-        return json.loads(raw_text)
+        return json.loads(match.group(0))
         
     except Exception as e:
-        print(f"ERROR PARSING AI RESPONSE: {e}")
+        # 🚨 FATAL ERROR ROUTING: Push the Python crash directly to the UI Banner
         return {
-            "tactical_brief": "Core system parsing error. Timeline integrity maintained, but re-optimization failed.", 
+            "tactical_brief": f"SYSTEM CRASH: {str(e)}", 
             "schedule": current_blocks
         }
 # ==========================================================
@@ -976,20 +977,21 @@ with workspace_main:
                 }, f)
             st.rerun()
             # ==========================================
-            # 🚨 AI TACTICAL PIVOT BANNER (THE WOW FACTOR)
+            # 🚨 AI TACTICAL PIVOT BANNER (V2 - ERROR SURFACING)
             # ==========================================
             if st.session_state.get("ai_pivot_brief"):
                 st.markdown(f"""
-                    <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.4); border-left: 4px solid #EF4444; border-radius: 8px; padding: 18px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(220, 38, 38, 0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="color: #F87171; font-weight: 800; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;">⚡ Tactical Pivot Executed</span>
+                    <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid #EF4444; border-left: 6px solid #EF4444; border-radius: 8px; padding: 18px; margin-bottom: 25px;">
+                        <div style="color: #F87171; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">
+                            ⚡ AI System Status
                         </div>
-                        <div style="color: #FECACA; font-size: 15px; font-weight: 500; line-height: 1.5;">
-                            "{st.session_state['ai_pivot_brief']}"
+                        <div style="color: #ffffff; font-size: 16px; font-weight: 500; font-family: monospace;">
+                            {st.session_state['ai_pivot_brief']}
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
-    st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Today's schedule</h3>", unsafe_allow_html=True)
+                
+            st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Today's schedule</h3>", unsafe_allow_html=True)
 
     if optimize_execution and raw_task_stream:
         if DEMO_MODE:

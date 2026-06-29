@@ -1087,7 +1087,7 @@ with workspace_main:
                 """
                 try:
                     response = client.models.generate_content(
-                        model=MODEL_NAME,
+                        model='gemini-2.5-flash', # 🚨 FIX 1: Replaced undefined MODEL_NAME
                         contents=prompt_blueprint,
                         config=types.GenerateContentConfig(
                             response_mime_type="application/json",
@@ -1100,12 +1100,23 @@ with workspace_main:
                         block["state"] = "ready"
 
                     st.session_state["blocks"] = blocks
-                except Exception:
-                    st.warning("🌐 Core sync pipeline experiencing heavy traffic. Activating localized scheduling matrix fallback.")
+                    
+                except Exception as e:
+                    # 🚨 FIX 2: Stop flying blind! Print the exact crash to the screen
+                    st.error(f"API Generation Crash: {str(e)}") 
                     st.session_state["blocks"] = DEFAULT_BLOCKS
                     for block in st.session_state["blocks"]:
                         block["state"] = "ready"
-                    st.rerun()
+
+                # 🚨 FIX 3: Nuke all ghost data from the previous session before reloading!
+                if "skill_tracker" in st.session_state:
+                    del st.session_state["skill_tracker"]
+                if "radar" in st.session_state:
+                    del st.session_state["radar"]
+                if "eod_insight" in st.session_state:
+                    del st.session_state["eod_insight"]
+                    
+                st.rerun() # Finally, reload the page cleanly
 
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)
 

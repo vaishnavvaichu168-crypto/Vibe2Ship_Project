@@ -1067,10 +1067,24 @@ with workspace_main:
             # 1. Fetch new blocks from the AI
             updated_blocks = mutate_schedule_with_ai(st.session_state["blocks"], disruption_event.strip())
 
-            # 2. TRAP THE ERROR: Only trigger the page refresh if the AI actually changed something
-            if updated_blocks != st.session_state["blocks"]:
-                st.session_state["blocks"] = updated_blocks
-                with open(DATA_FILE, "w") as f:
+        # 2. TRAP THE ERROR: Only trigger the page refresh if the AI actually changed something
+        if updated_blocks != st.session_state["blocks"]:
+            
+            # --- IMMUTABLE PAST IMPLEMENTATION ---
+            # 1. Separate the past from the future using your actual session state
+            completed_tasks = [task for task in st.session_state["blocks"] if task.get("state") == "completed"]
+            
+            # 2. Grab the newly optimized future tasks from the AI (ignoring any completed tasks it tried to return)
+            new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
+            
+            # 3. Merge them together safely! Overwrite state.
+            st.session_state["blocks"] = completed_tasks + new_future_tasks
+            
+            # 4. Trigger the toast alert
+            st.toast("🚨 AI PIVOT INITIATED: Future timeline overwritten.", icon="🔥")
+            # -------------------------------------
+
+            with open(DATA_FILE, "w") as f:
                     json.dump({
                         "blocks": st.session_state["blocks"],
                         "streak": st.session_state.get("streak", 1),

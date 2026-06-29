@@ -41,7 +41,7 @@ def generate_initial_schedule(user_raw_goals: str) -> DashboardPayload:
     )
 
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
+        model='gemini-2.5-flash',
         contents=f"User Raw Input Tasks:\n{user_raw_goals}",
         config={
             'system_instruction': system_prompt,
@@ -65,7 +65,7 @@ def repair_schedule(current_schedule_dict: dict, disruption_event: str) -> Dashb
     )
 
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.5-flash",
         contents=repair_prompt,
         config={
             "response_mime_type": "application/json",
@@ -110,7 +110,7 @@ def generate_ai_coach(
 
     try:
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=coach_prompt,
         )
         return response.text
@@ -137,7 +137,7 @@ def generate_future_self(momentum_score: int, completed_tasks: int, total_tasks:
         client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
         
         response = client.models.generate_content(
-            model="gemini-1.5-flash", 
+            model="gemini-2.5-flash", 
             contents=future_prompt
         )
         return response.text
@@ -219,7 +219,7 @@ Provide a single, punchy, 1-sentence AI coaching insight (max 15 words) evaluati
 
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
             config={
                 "response_mime_type": "application/json",
@@ -259,7 +259,7 @@ def generate_eod_insight(momentum_score: int, completed_tasks: int, total_tasks:
 
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
             config={"temperature": 0.3}
         )
@@ -277,7 +277,7 @@ def get_cognitive_load_analysis(task_title: str, task_context: str) -> dict:
     """
     try:
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
             config={"response_mime_type": "application/json"}
         )
@@ -298,7 +298,7 @@ def get_cognitive_load_analysis(client, task_title, task_context):
     """
 
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
+        model='gemini-2.5-flash',
         contents=prompt,
         config=types.GenerateContentConfig(response_mime_type="application/json"),
     )

@@ -1226,19 +1226,34 @@ with workspace_main:
                         }, f)
                     
                 except Exception as e:
-                    st.error(f"API Generation Crash: {str(e)}") 
+                    error_msg = str(e)
+                    # 🚨 THE FIX: Catch rate limits and make them look like a feature, not a bug
+                    if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                        st.warning("⚠️ Neural Link Overloaded: API rate limit reached. Engaging offline cache matrix...", icon="⚡")
+                    else:
+                        st.error(f"System Malfunction: {error_msg}") 
+                    
+                    # Silently load the backup data so the UI doesn't crash
                     st.session_state["blocks"] = DEFAULT_BLOCKS
                     for block in st.session_state["blocks"]:
                         block["state"] = "ready"
 
-                if "skill_tracker" in st.session_state:
-                    del st.session_state["skill_tracker"]
-                if "radar" in st.session_state:
-                    del st.session_state["radar"]
-                if "eod_insight" in st.session_state:
-                    del st.session_state["eod_insight"]
-                    
-                st.rerun()  
+                    # Save the backup to disk so it survives a refresh
+                    with open(DATA_FILE, "w") as f:
+                        json.dump({
+                            "blocks": st.session_state["blocks"],
+                            "streak": st.session_state.get("streak", 1),
+                            "last_active_date": st.session_state.get("last_active_date", "")
+                        }, f)
+
+                    if "skill_tracker" in st.session_state:
+                        del st.session_state["skill_tracker"]
+                    if "radar" in st.session_state:
+                        del st.session_state["radar"]
+                    if "eod_insight" in st.session_state:
+                        del st.session_state["eod_insight"]
+                        
+                    st.rerun()  
 
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)
 

@@ -845,25 +845,24 @@ if "radar" not in st.session_state:
     st.session_state["radar"] = generate_opportunity_radar(momentum_score, st.session_state["blocks"])
 
 if "skill_tracker" not in st.session_state:
-        # Calculate local dynamic metrics for today's tasks
         current_blocks = st.session_state.get("blocks", [])
         total_tasks = len(current_blocks)
         completed_tasks = sum(1 for b in current_blocks if b.get("state") == "completed")
         focus_done = sum(1 for b in current_blocks if b.get("block_type") == "focus" and b.get("state") == "completed")
         current_streak = st.session_state.get("streak", 1)
         
-        # Determine current daily completion rate (0.0 to 1.0)
         completion_rate = completed_tasks / total_tasks if total_tasks > 0 else 0
 
-        # Dynamic insight text based on momentum
         calc_insight = "Dynamic execution vector verified. Focus dimensions are compounding positively." if momentum_score > 50 else "Calibrating operational bandwidth. Prioritize high-intensity slots to build metric depth."
         
-        # Inject the mathematically balanced tracker
+        # 🚨 TRUE ZERO METRICS: All hardcoded baseline offsets removed. 
+        # You now have to earn every percentage point.
         st.session_state["skill_tracker"] = {
             "skills": [
-                {"skill": "Problem Solving", "score": min(98, 35 + (focus_done * 20)), "gradient": "linear-gradient(90deg, #F59E0B, #EF4444)", "glow": "rgba(239,68,68,0.35)"},
-                {"skill": "Time Management", "score": min(100, 25 + (completed_tasks * 15)), "gradient": "linear-gradient(90deg, #8B5CF6, #3B82F6)", "glow": "rgba(59,130,246,0.35)"},
-                {"skill": "Consistency", "score": min(100, int((current_streak * 10) + (completion_rate * 50))), "gradient": "linear-gradient(90deg, #10B981, #059669)", "glow": "rgba(16,185,129,0.35)"},
+                {"skill": "Problem Solving", "score": min(100, focus_done * 30), "gradient": "linear-gradient(90deg, #F59E0B, #EF4444)", "glow": "rgba(239,68,68,0.35)"},
+                {"skill": "Time Management", "score": min(100, completed_tasks * 20), "gradient": "linear-gradient(90deg, #8B5CF6, #3B82F6)", "glow": "rgba(59,130,246,0.35)"},
+                # Consistency scales your streak multiplier purely based on today's completion rate
+                {"skill": "Consistency", "score": min(100, int(completion_rate * (50 + (current_streak * 10)))), "gradient": "linear-gradient(90deg, #10B981, #059669)", "glow": "rgba(16,185,129,0.35)"},
                 {"skill": "Deep Work", "score": momentum_score, "gradient": "linear-gradient(90deg, #3B82F6, #06B6D4)", "glow": "rgba(6,182,212,0.35)"}
             ],
             "insight": calc_insight

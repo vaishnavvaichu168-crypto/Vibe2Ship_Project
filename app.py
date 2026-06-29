@@ -46,9 +46,9 @@ def mutate_schedule_with_ai(current_blocks, anomaly_text):
     """
 
     try:
-        # Using the modern SDK generate_content syntax and the 2.5 model
+        # Using the modern SDK generate_content syntax and the 1.5 model
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

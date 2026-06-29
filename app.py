@@ -1084,36 +1084,41 @@ with workspace_main:
     st.markdown("### 🌪️ Reality Changed?")
     disruption_event = st.text_area("Describe what happened:", placeholder="Example: Meeting ran 45 minutes late. I'm exhausted.")
     reoptimize = st.button("🔄 Re-Optimize Schedule", use_container_width=True)
+    
     if reoptimize and disruption_event.strip():
-        with st.spinner("🧠 Neural link active. Passing context to Gemini..."):
-
-            # 1. Fetch the new payload object from the AI
-            ai_payload = mutate_schedule_with_ai(st.session_state["blocks"], disruption_event.strip())
-            
-            # 2. Extract components
-            updated_blocks = ai_payload.get("schedule", st.session_state["blocks"])
-            tactical_brief = ai_payload.get("tactical_brief", "Anomaly analyzed. Timeline remains structurally sound.")
-
-            # --- THE WOW FACTOR: Force the brief into memory unconditionally ---
-            st.session_state["ai_pivot_brief"] = tactical_brief
-            # -------------------------------------------------------------------
-
-            # 3. Only mutate the actual schedule blocks if the AI changed them
-            if updated_blocks != st.session_state["blocks"]:
-                
-                completed_tasks = [task for task in st.session_state["blocks"] if task.get("state") == "completed"]
-                new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
-                
-                st.session_state["blocks"] = completed_tasks + new_future_tasks
-
-                with open(DATA_FILE, "w") as f:
-                    json.dump({
-                        "blocks": st.session_state["blocks"],
-                        "streak": st.session_state.get("streak", 1),
-                        "last_active_date": st.session_state.get("last_active_date", "")
-                    }, f)
-
+        # --- THE HACKATHON SAFETY NET ---
+        if DEMO_MODE:
+            st.session_state["ai_pivot_brief"] = "DEMO PIVOT: Absorbed the delay by compressing your next break by 15 mins to protect the core pipeline."
+            st.toast("🚀 Demo Mode: Instant AI Pivot Engaged", icon="⚡")
             st.rerun()
+        # --------------------------------
+        
+        else:
+            with st.spinner("🧠 Neural link active. Passing context to Gemini..."):
+                # 1. Fetch the new payload object from the AI
+                ai_payload = mutate_schedule_with_ai(st.session_state["blocks"], disruption_event.strip())
+                
+                # 2. Extract components
+                updated_blocks = ai_payload.get("schedule", st.session_state["blocks"])
+                
+                # 3. UNCONDITIONAL STATE SAVE (Required for error rendering)
+                st.session_state["ai_pivot_brief"] = ai_payload.get("tactical_brief", "Unknown status.")
+
+                # 4. Only mutate the actual schedule blocks if the AI changed them
+                if updated_blocks != st.session_state["blocks"]:
+                    completed_tasks = [task for task in st.session_state["blocks"] if task.get("state") == "completed"]
+                    new_future_tasks = [task for task in updated_blocks if task.get("state") != "completed"]
+                    
+                    st.session_state["blocks"] = completed_tasks + new_future_tasks
+
+                    with open(DATA_FILE, "w") as f:
+                        json.dump({
+                            "blocks": st.session_state["blocks"],
+                            "streak": st.session_state.get("streak", 1),
+                            "last_active_date": st.session_state.get("last_active_date", "")
+                        }, f)
+
+                st.rerun()
     
         # ##########################################################
 

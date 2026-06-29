@@ -950,14 +950,12 @@ with radar_col2:
 row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
 with row2_col1:
     # 🌀 MATHEMATICS OF CHAOS
-    # Calculate friction from context switching
     switches = 0
     valid_blocks = [b for b in st.session_state.get("blocks", []) if b.get("block_type") in ["focus", "meeting"]]
     for i in range(len(valid_blocks) - 1):
         if valid_blocks[i].get("block_type") != valid_blocks[i+1].get("block_type"):
             switches += 1
     
-    # Base entropy is the inverse of momentum, heavily penalized by context switching
     base_entropy = max(5, 100 - momentum_score)
     entropy_score = min(98, base_entropy + (switches * 8))
     
@@ -974,29 +972,29 @@ with row2_col1:
     else:
         entropy_state = "TIMELINE DESTABILIZING"
         e_color = "#EF4444" # Red
-        # 🚨 THE 4TH WALL BREAK: This class triggers the CSS vibration
         glitch_class = "glitch-card"
         ring_stroke = "stroke-dasharray='10 15 5 20 15 5'"
 
-    # Injecting the dynamic CSS animation specifically for the glitch
-    glitch_css = f"""
+    # 1. Standard string for CSS (No f-string, prevents bracket errors)
+    glitch_css = """
     <style>
-        @keyframes hardwareGlitch {{
-            0% {{ transform: translate(0) }}
-            20% {{ transform: translate(-2px, 1px) }}
-            40% {{ transform: translate(-1px, -1px) }}
-            60% {{ transform: translate(2px, 1px) }}
-            80% {{ transform: translate(1px, -1px) }}
-            100% {{ transform: translate(0) }}
-        }}
-        .glitch-card {{
+        @keyframes hardwareGlitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 1px) }
+            40% { transform: translate(-1px, -1px) }
+            60% { transform: translate(2px, 1px) }
+            80% { transform: translate(1px, -1px) }
+            100% { transform: translate(0) }
+        }
+        .glitch-card {
             animation: hardwareGlitch 0.3s infinite !important;
             border: 1px solid rgba(239, 68, 68, 0.4) !important;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.15) !important;
-        }}
+        }
     </style>
     """
 
+    # 2. Render everything with unsafe_allow_html=True
     st.markdown(glitch_css + f"""
         <div class="dashboard-card {glitch_class}" style="height: 100%;">
             <div class="card-header"><span class="header-icon" style="color:{e_color}">{ICON_TARGET}</span>Thermodynamic Entropy</div>

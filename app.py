@@ -697,7 +697,20 @@ if st.session_state.get("show_report", False):
                 )
                 
                 st.plotly_chart(fig_3d, use_container_width=True, config={'displayModeBar': False}, key="energy_fig")
-
+                # 5. The UX Telemetry Legend (Hardcoded Explanation)
+                st.markdown("""
+                    <div style="margin-top: -10px; padding: 14px 18px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px;">
+                        <div style="color: #60A5FA; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px; margin-bottom: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            How to read this matrix
+                        </div>
+                        <div style="color: #94A3B8; font-size: 12px; line-height: 1.7;">
+                            <span style="color: #E2E8F0; font-weight: 600;">Timeline (➔):</span> The chronological flow of your day from morning (left) to evening (right).<br>
+                            <span style="color: #E2E8F0; font-weight: 600;">Cognitive Load (⇡):</span> Vertical peaks show the raw neurological intensity of completed tasks. High peaks equal deep work.<br>
+                            <span style="color: #E2E8F0; font-weight: 600;">Focus Depth (➔):</span> The width of the mountain base reveals the sustained mental bandwidth required to stay in flow.
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
     with col_rep2:
         st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>Distribution</h4>", unsafe_allow_html=True)
 

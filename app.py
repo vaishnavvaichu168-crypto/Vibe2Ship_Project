@@ -4,7 +4,6 @@ from google.genai import types
 import plotly.graph_objects as go
 import os
 import json
-import time
 from datetime import datetime
 from typing import List, Literal
 from dotenv import load_dotenv
@@ -609,8 +608,7 @@ if st.session_state.get("show_report", False):
             )
             st.plotly_chart(fig_hero, use_container_width=True, config={'displayModeBar': False}, key="momentum_fig")
 
-# --- Micro-stagger for the bottom row ---
-    time.sleep(0.4)
+
 
     # 1. THE CHECK: Are there any tasks?
     if "blocks" not in st.session_state or len(st.session_state["blocks"]) == 0:

@@ -949,7 +949,7 @@ with radar_col2:
         st.rerun()
 
 # Row 2 Analytics Cards Rendering
-row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
+row2_col1, row2_col2, row2_col3 = st.columns([2.1, 1], gap="large")
 with row2_col1:
     # 🌀 MATHEMATICS OF CHAOS
     switches = 0
@@ -961,68 +961,82 @@ with row2_col1:
     base_entropy = max(5, 100 - momentum_score)
     entropy_score = min(98, base_entropy + (switches * 8))
     
+    # DYNAMIC ANIMATION VARIABLES
     if entropy_score < 40:
         entropy_state = "SYSTEM STABLE"
         e_color = "#10B981" # Green
-        glitch_class = ""
-        ring_stroke = "stroke-dasharray='90 10'"
+        ring_speed = "12s" # Slow, calm rotation
+        wave_class = "wave-smooth"
     elif entropy_score < 75:
         entropy_state = "ELEVATED CHAOS"
         e_color = "#F59E0B" # Orange
-        glitch_class = ""
-        ring_stroke = "stroke-dasharray='40 10 20 10'"
+        ring_speed = "4s" # Agitated rotation
+        wave_class = "wave-agitated"
     else:
         entropy_state = "TIMELINE DESTABILIZING"
         e_color = "#EF4444" # Red
-        glitch_class = "glitch-card"
-        ring_stroke = "stroke-dasharray='10 15 5 20 15 5'"
+        ring_speed = "0.8s" # Violent, glitching rotation
+        wave_class = "wave-chaotic"
 
-    # 1. Standard string for CSS (No f-string, prevents bracket errors)
-    glitch_css = """
+    # 1. PURE CSS ANIMATION ENGINE (Zero API load)
+    reactor_css = f"""
     <style>
-        @keyframes hardwareGlitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 1px) }
-            40% { transform: translate(-1px, -1px) }
-            60% { transform: translate(2px, 1px) }
-            80% { transform: translate(1px, -1px) }
-            100% { transform: translate(0) }
-        }
-        .glitch-card {
-            animation: hardwareGlitch 0.3s infinite !important;
-            border: 1px solid rgba(239, 68, 68, 0.4) !important;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15) !important;
-        }
+        @keyframes spinRight {{ 100% {{ transform: rotate(360deg); }} }}
+        @keyframes spinLeft {{ 100% {{ transform: rotate(-360deg); }} }}
+        @keyframes scrollWave {{ 100% {{ transform: translateX(-50%); }} }}
+        
+        .reactor-ring-1 {{ transform-origin: center; animation: spinRight {ring_speed} linear infinite; }}
+        .reactor-ring-2 {{ transform-origin: center; animation: spinLeft calc({ring_speed} * 1.5) linear infinite; }}
+        
+        .wave-smooth {{ stroke-dasharray: 0; animation: scrollWave 8s linear infinite; }}
+        .wave-agitated {{ stroke-dasharray: 20 5; animation: scrollWave 3s linear infinite; }}
+        .wave-chaotic {{ stroke-dasharray: 5 15 10 5; animation: scrollWave 0.5s linear infinite; filter: drop-shadow(0 0 8px #EF4444); }}
     </style>
     """
 
-    # 2. Store the HTML in a variable
-    entropy_html = f"""
-        <div class="dashboard-card {glitch_class}" style="height: 100%;">
-            <div class="card-header"><span class="header-icon" style="color:{e_color}">{ICON_TARGET}</span>Thermodynamic Entropy</div>
-            <div class="flex-container" style="margin-top: 15px;">
-                <div style="flex: 1;">
-                    <div style="font-size: 34px; font-weight: 800; color: {e_color}; line-height: 1.1;">{entropy_score}<span style="font-size: 18px;">%</span></div>
-                    <div style="font-size: 11px; font-weight: 800; color: {e_color}; margin-top: 2px; letter-spacing: 1px;">{entropy_state}</div>
-                </div>
-                <div style="width: 70px; height: 70px;">
-                    <svg viewBox="0 0 100 100" width="100%" height="100%" style="transform: rotate(-90deg); filter: drop-shadow(0 0 6px {e_color});">
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="{e_color}" stroke-width="6" opacity="0.2"/>
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="{e_color}" stroke-width="6" {ring_stroke}/>
-                        <circle cx="50" cy="50" r="25" fill="none" stroke="{e_color}" stroke-width="2" opacity="0.4"/>
+    # 2. PANORAMIC HTML LAYOUT
+    reactor_html = f"""
+        <div class="dashboard-card" style="height: 100%; padding: 20px 24px;">
+            <div class="card-header"><span class="header-icon" style="color:{e_color}">{ICON_TARGET}</span>Thermodynamic Entropy Core</div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; width: 100%;">
+                
+                <div style="width: 75px; height: 75px; flex-shrink: 0;">
+                    <svg viewBox="0 0 100 100" width="100%" height="100%" style="filter: drop-shadow(0 0 6px {e_color});">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="{e_color}" stroke-width="3" opacity="0.2"/>
+                        <circle class="reactor-ring-1" cx="50" cy="50" r="42" fill="none" stroke="{e_color}" stroke-width="4" stroke-dasharray="60 30 10 30"/>
+                        <circle class="reactor-ring-2" cx="50" cy="50" r="30" fill="none" stroke="{e_color}" stroke-width="3" stroke-dasharray="20 40 40 10" opacity="0.7"/>
+                        <circle cx="50" cy="50" r="15" fill="{e_color}" opacity="0.2"/>
                     </svg>
                 </div>
+
+                <div style="flex: 1; padding-left: 25px;">
+                    <div style="display: flex; align-items: baseline; gap: 8px;">
+                        <div style="font-size: 38px; font-weight: 800; color: {e_color}; line-height: 1;">{entropy_score}<span style="font-size: 20px;">%</span></div>
+                        <div style="font-size: 12px; font-weight: 800; color: {e_color}; letter-spacing: 1px;">{entropy_state}</div>
+                    </div>
+                    <div style="font-size: 11px; color: #64748B; margin-top: 8px; font-family: monospace; letter-spacing: 0.5px;">
+                        <span style="color:#94A3B8;">MATH:</span> Base({base_entropy}) + Switches({switches} x 8) = Total Chaos
+                    </div>
+                </div>
+
+                <div style="width: 120px; height: 40px; overflow: hidden; position: relative; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 15px;">
+                    <svg viewBox="0 0 200 40" width="200%" height="100%" style="position: absolute; top: 0; left: 0; color: {e_color};">
+                        <path class="{wave_class}" d="M 0 20 Q 12 5 25 20 T 50 20 T 75 20 T 100 20 T 125 20 T 150 20 T 175 20 T 200 20 T 225 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                
             </div>
-            <div class="card-subtext" style="margin-top: 12px;">Measures timeline chaos and context-switch friction.</div>
         </div>
     """
 
-    # 3. 🚨 THE FIX: Use flatten_html() to strip the 4-space indentations!
-    st.markdown(glitch_css + flatten_html(entropy_html), unsafe_allow_html=True)
+    # 3. RENDER (Using your exact flattener to prevent bugs)
+    st.markdown(reactor_css + flatten_html(reactor_html), unsafe_allow_html=True)
 
-with row2_col3:
+with row2_col2:
     st.markdown(f"""
-        <div class="dashboard-card"><div class="card-header">Meetings Logged</div>
+        <div class="dashboard-card" style="height: 100%;">
+            <div class="card-header">Meetings Logged</div>
             <div class="flex-container">
                 <div class="card-value">{m_count} <span style="font-size:12px; color:#64748B; margin-left:10px; font-weight:500;">~{m_count * 30}m total</span></div>
                 {sparkline("0,15 15,5 30,22 45,10 60,18", color="#22C55E", width=60, height=30)}

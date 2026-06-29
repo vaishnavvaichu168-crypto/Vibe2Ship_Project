@@ -806,13 +806,41 @@ momentum_score = int((earned_weight / total_weight) * 100) if total_weight > 0 e
 # 9. Row 1 Analytics Grid
 row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
 with row1_col1:
+    # 🌌 MATHEMATICS OF ORBIT
+    if momentum_score < 40:
+        status_text = "GRAVITY WELL"
+        sub_text = "Inertia is pulling you down. Complete a focus block to gain altitude."
+        orbit_color = "#F59E0B" # Warning Orange
+        # Downward trajectory arc
+        svg_graphic = '<path d="M10 20 Q 50 20, 90 90" fill="none" stroke="#F59E0B" stroke-width="5" stroke-linecap="round"/>'
+    elif momentum_score < 80:
+        status_text = "STABLE ORBIT"
+        sub_text = "Momentum sustained. You are cruising at peak efficiency."
+        orbit_color = "#06B6D4" # Cyan Blue
+        # Perfect stable rings
+        svg_graphic = '<circle cx="50" cy="50" r="40" fill="none" stroke="#06B6D4" stroke-width="4" stroke-dasharray="15 5"/><circle cx="50" cy="50" r="25" fill="none" stroke="#06B6D4" stroke-width="1" opacity="0.5"/>'
+    else:
+        status_text = "ESCAPE VELOCITY"
+        sub_text = "Unstoppable trajectory. Your focus is compounding exponentially."
+        orbit_color = "#10B981" # Emerald Green
+        # Upward breaking arc
+        svg_graphic = '<path d="M10 90 Q 40 90, 90 10" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round"/><circle cx="90" cy="10" r="5" fill="#10B981" />'
+
     st.markdown(f"""
-        <div class="dashboard-card"><div class="card-header"><span class="header-icon" style="color:#3B82F6">{ICON_SPARKLE}</span>Today's Focus</div>
-            <div class="flex-container">
-                <div class="card-value">{momentum_score} <span class="badge-green">+6 pts</span></div>
-                {donut_ring(momentum_score, size=56, color="#3B82F6")}
+        <div class="dashboard-card" style="height: 100%;">
+            <div class="card-header"><span class="header-icon" style="color:{orbit_color}">{ICON_SPARKLE}</span>Orbital Trajectory</div>
+            <div class="flex-container" style="margin-top: 15px;">
+                <div style="flex: 1;">
+                    <div style="font-size: 11px; font-weight: 800; color: {orbit_color}; letter-spacing: 1.5px; margin-bottom: 2px;">STATUS: {status_text}</div>
+                    <div style="font-size: 34px; font-weight: 800; color: #FFFFFF; line-height: 1.1;">{momentum_score}<span style="font-size: 16px; color: #64748B;"> km/s</span></div>
+                </div>
+                <div style="width: 70px; height: 70px; position: relative;">
+                    <svg viewBox="0 0 100 100" width="100%" height="100%" style="filter: drop-shadow(0 0 8px {orbit_color});">
+                        {svg_graphic}
+                    </svg>
+                </div>
             </div>
-            <div class="card-subtext">Deep focus, low context-switching state detected.</div>
+            <div class="card-subtext" style="margin-top: 12px;">{sub_text}</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -921,28 +949,73 @@ with radar_col2:
 # Row 2 Analytics Cards Rendering
 row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
 with row2_col1:
-    st.markdown(f"""
-        <div class="dashboard-card"><div class="card-header">Momentum Score</div>
-            <div class="flex-container">
-                <div class="card-value">{momentum_score}% <span class="badge-green">Live</span></div>
-                {sparkline("0,10 15,22 30,14 45,26 60,18", color="#3B82F6", width=60, height=30)}
+    # 🌀 MATHEMATICS OF CHAOS
+    # Calculate friction from context switching
+    switches = 0
+    valid_blocks = [b for b in st.session_state.get("blocks", []) if b.get("block_type") in ["focus", "meeting"]]
+    for i in range(len(valid_blocks) - 1):
+        if valid_blocks[i].get("block_type") != valid_blocks[i+1].get("block_type"):
+            switches += 1
+    
+    # Base entropy is the inverse of momentum, heavily penalized by context switching
+    base_entropy = max(5, 100 - momentum_score)
+    entropy_score = min(98, base_entropy + (switches * 8))
+    
+    if entropy_score < 40:
+        entropy_state = "SYSTEM STABLE"
+        e_color = "#10B981" # Green
+        glitch_class = ""
+        ring_stroke = "stroke-dasharray='90 10'"
+    elif entropy_score < 75:
+        entropy_state = "ELEVATED CHAOS"
+        e_color = "#F59E0B" # Orange
+        glitch_class = ""
+        ring_stroke = "stroke-dasharray='40 10 20 10'"
+    else:
+        entropy_state = "TIMELINE DESTABILIZING"
+        e_color = "#EF4444" # Red
+        # 🚨 THE 4TH WALL BREAK: This class triggers the CSS vibration
+        glitch_class = "glitch-card"
+        ring_stroke = "stroke-dasharray='10 15 5 20 15 5'"
+
+    # Injecting the dynamic CSS animation specifically for the glitch
+    glitch_css = f"""
+    <style>
+        @keyframes hardwareGlitch {{
+            0% {{ transform: translate(0) }}
+            20% {{ transform: translate(-2px, 1px) }}
+            40% {{ transform: translate(-1px, -1px) }}
+            60% {{ transform: translate(2px, 1px) }}
+            80% {{ transform: translate(1px, -1px) }}
+            100% {{ transform: translate(0) }}
+        }}
+        .glitch-card {{
+            animation: hardwareGlitch 0.3s infinite !important;
+            border: 1px solid rgba(239, 68, 68, 0.4) !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15) !important;
+        }}
+    </style>
+    """
+
+    st.markdown(glitch_css + f"""
+        <div class="dashboard-card {glitch_class}" style="height: 100%;">
+            <div class="card-header"><span class="header-icon" style="color:{e_color}">{ICON_TARGET}</span>Thermodynamic Entropy</div>
+            <div class="flex-container" style="margin-top: 15px;">
+                <div style="flex: 1;">
+                    <div style="font-size: 34px; font-weight: 800; color: {e_color}; line-height: 1.1;">{entropy_score}<span style="font-size: 18px;">%</span></div>
+                    <div style="font-size: 11px; font-weight: 800; color: {e_color}; margin-top: 2px; letter-spacing: 1px;">{entropy_state}</div>
+                </div>
+                <div style="width: 70px; height: 70px;">
+                    <svg viewBox="0 0 100 100" width="100%" height="100%" style="transform: rotate(-90deg); filter: drop-shadow(0 0 6px {e_color});">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="{e_color}" stroke-width="6" opacity="0.2"/>
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="{e_color}" stroke-width="6" {ring_stroke}/>
+                        <circle cx="50" cy="50" r="25" fill="none" stroke="{e_color}" stroke-width="2" opacity="0.4"/>
+                    </svg>
+                </div>
             </div>
+            <div class="card-subtext" style="margin-top: 12px;">Measures timeline chaos and context-switch friction.</div>
         </div>
     """, unsafe_allow_html=True)
-
-with row2_col2:
-    tasks_html = f"""
-    <div class="dashboard-card">
-        <div class="card-header">Tasks Completed</div>
-        <div class="flex-container">
-            <div class="card-value">
-                {completed_tasks} / {total_tasks}
-                <span class="badge-green">🔥 {st.session_state.get("streak", 1)} Day Streak</span>
-            </div>
-        </div>
-    </div>
-    """
-    st.markdown(flatten_html(tasks_html), unsafe_allow_html=True)
 
 with row2_col3:
     st.markdown(f"""

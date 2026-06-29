@@ -132,7 +132,18 @@ def generate_future_self(momentum_score: int, completed_tasks: int, total_tasks:
 
     # 2. NO TRY/EXCEPT SHIELD. If it fails, we want it to crash and tell us why!
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-    
+    # 2. THE PRINT-TO-SCREEN ERROR TRAP
+    try:
+        client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+        
+        response = client.models.generate_content(
+            model="gemini-1.5-flash", 
+            contents=future_prompt
+        )
+        return response.text
+        
+    except Exception as e:
+        return f"🚨 GOOGLE API ERROR: {type(e).__name__} - {str(e)}"
 
 
 def generate_opportunity_radar(

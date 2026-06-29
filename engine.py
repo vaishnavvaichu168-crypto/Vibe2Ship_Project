@@ -57,12 +57,16 @@ def repair_schedule(current_schedule_dict: dict, disruption_event: str) -> Dashb
     """Intercepts active state, models real-world friction, and mutates variables without breaking the schema."""
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-    repair_prompt = (
-        f"CRITICAL SYSTEM DISRUPTION: The user's day has fractured due to this issue: '{disruption_event}'.\n"
-        f"ACTIVE TIMELINE METRICS DATA STATE: {str(current_schedule_dict)}\n"
-        "Re-evaluate the open schedule hours. Compress blocks, shift time slots downward, and recalculate "
-        "the Focus Score penalty based on this real-world interference. Protect high-value Focus slots first."
-    )
+    repair_prompt = f"""
+    CRITICAL SYSTEM DISRUPTION: The user's day has fractured due to this issue: '{disruption_event}'.
+    Here are their tasks and current state: {str(current_schedule_dict)}.
+
+    Act as an elite AI performance coach saving a derailed schedule.
+    CRITICAL INSTRUCTIONS:
+    1. You MUST adjust the start times of all remaining open tasks to account for the delay. DO NOT alter the times of tasks marked as 'completed'.
+    2. If the delay is severe, compress upcoming 'buffer' or 'break' slots to absorb the lost time. Do not delete core technical tasks.
+    3. In the 'adversarial_brief' field of the JSON, write a brutal, 2-sentence tactical explanation of exactly what trade-offs you made to save their day (e.g., "You lost 45 mins. I compressed your 4:00 PM break and shifted debugging to 5:30 PM to keep the pipeline intact.").
+    """
 
     response = client.models.generate_content(
         model="gemini-2.5-flash",

@@ -465,10 +465,11 @@ def repaired_schedule_to_blocks(schedule):
         })
     return repaired_blocks
 @st.dialog("Mission Impact Preview")
-def show_impact_preview(task_title, current_momentum, current_streak):
+def show_impact_preview(task_idx, current_momentum, current_streak):
     st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 14px; margin-top: -10px; margin-bottom: 20px;'>Completing this mission will improve today's performance.</p>", unsafe_allow_html=True)
 
-    task = next((b for b in st.session_state["blocks"] if b["title"] == task_title), None)
+    # 🚨 THE FIX: Grab the exact task using its index
+    task = st.session_state["blocks"][task_idx]
     is_focus = task and task.get("block_type") == "focus"
 
     m_boost = 9 if is_focus else 4
@@ -502,15 +503,16 @@ def show_impact_preview(task_title, current_momentum, current_streak):
     if btn_c1.button("Cancel", use_container_width=True):
         st.rerun()
     if btn_c2.button("✅ Complete Mission", type="primary", use_container_width=True):
-        for block in st.session_state["blocks"]:
-            if block["title"] == task_title and block.get("state", "ready") == "in_focus":
-                block["state"] = "completed"
+        # 🚨 THE FIX: Only update the EXACT task index that was passed in!
+        st.session_state["blocks"][task_idx]["state"] = "completed"
+            
         with open(DATA_FILE, "w") as f:
             json.dump({
                 "blocks": st.session_state["blocks"],
                 "streak": st.session_state.get("streak", 1),
                 "last_active_date": st.session_state.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
             }, f)
+            
         if "skill_tracker" in st.session_state:
             del st.session_state["skill_tracker"]
         if "radar" in st.session_state:
@@ -1227,18 +1229,28 @@ with workspace_main:
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)
 
     st.markdown("### 🎯 Mission Control")
-    task_titles = [b["title"] for b in st.session_state["blocks"]]
-    selected_task = st.selectbox("Select Task", task_titles)
+    
+    # 🚨 THE FIX: Create a dictionary linking the unique index to a visual label (Time + Title)
+    task_options = {i: f"{b.get('time', 'Slot')} — {b['title']}" for i, b in enumerate(st.session_state["blocks"])}
+    
+    # The selectbox uses the index as the actual value, but displays the formatted string
+    selected_idx = st.selectbox(
+        "Select Task", 
+        options=list(task_options.keys()), 
+        format_func=lambda x: task_options[x]
+    )
 
     col_mc1, col_mc2 = st.columns(2)
 
     with col_mc1:
         if st.button("🚀 Start Focus", use_container_width=True):
-            for block in st.session_state["blocks"]:
-                if block["title"] == selected_task:
+            for i, block in enumerate(st.session_state["blocks"]):
+                # 🚨 THE FIX: Match by exact index, not by title!
+                if i == selected_idx:
                     block["state"] = "in_focus"
                 elif block.get("state", "ready") == "in_focus":
                     block["state"] = "ready"
+                    
             with open(DATA_FILE, "w") as f:
                 json.dump({
                     "blocks": st.session_state["blocks"],
@@ -1249,7 +1261,8 @@ with workspace_main:
 
     with col_mc2:
         if st.button("✅ Complete Mission", use_container_width=True):
-            show_impact_preview(selected_task, momentum_score, st.session_state.get("streak", 1))
+            # Pass the unique index to the popup window instead of the title
+            show_impact_preview(selected_idx, momentum_score, st.session_state.get("streak", 1))
 
     # ##########################################################
     # 🌪️ THE REAL-TIME AI REPAIR PIPELINE (LIVE MUTATION)

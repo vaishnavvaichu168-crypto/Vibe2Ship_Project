@@ -1105,7 +1105,7 @@ with workspace_main:
                 """
                 try:
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash', # 🚨 FIX 1: Replaced undefined MODEL_NAME
+                        model='gemini-2.5-flash',
                         contents=prompt_blueprint,
                         config=types.GenerateContentConfig(
                             response_mime_type="application/json",
@@ -1119,14 +1119,20 @@ with workspace_main:
 
                     st.session_state["blocks"] = blocks
                     
+                    # 🚨 NEW ADDITION: Save to disk immediately so it survives a refresh!
+                    with open(DATA_FILE, "w") as f:
+                        json.dump({
+                            "blocks": st.session_state["blocks"],
+                            "streak": st.session_state.get("streak", 1),
+                            "last_active_date": st.session_state.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
+                        }, f)
+                    
                 except Exception as e:
-                    # 🚨 FIX 2: Stop flying blind! Print the exact crash to the screen
                     st.error(f"API Generation Crash: {str(e)}") 
                     st.session_state["blocks"] = DEFAULT_BLOCKS
                     for block in st.session_state["blocks"]:
                         block["state"] = "ready"
 
-                # 🚨 FIX 3: Nuke all ghost data from the previous session before reloading!
                 if "skill_tracker" in st.session_state:
                     del st.session_state["skill_tracker"]
                 if "radar" in st.session_state:
@@ -1134,7 +1140,7 @@ with workspace_main:
                 if "eod_insight" in st.session_state:
                     del st.session_state["eod_insight"]
                     
-                st.rerun() # Finally, reload the page cleanly
+                st.rerun()  
 
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)
 

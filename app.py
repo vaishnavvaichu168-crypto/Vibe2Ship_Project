@@ -665,7 +665,7 @@ if st.session_state.get("show_report", False):
                                     distance_sq = (i - center_x)**2 + (j - center_y)**2
                                     z_data[j][i] += intensity * math.exp(-distance_sq / 12.0)
 
-                # 3. Render the Hologram
+                # 3. Render the Hologram (WITH CUSTOM TOOLTIPS)
                 fig_3d = go.Figure(data=[go.Surface(
                     z=z_data,
                     colorscale='electric',
@@ -673,21 +673,24 @@ if st.session_state.get("show_report", False):
                     opacity=0.85,
                     contours=dict(
                         z=dict(show=True, usecolormap=True, highlightcolor="white", project_z=True)
-                    )
+                    ),
+                    # TRANSLATES RAW MATH INTO UX
+                    hovertemplate="<b>Timeline (X):</b> %{x}<br><b>Focus Depth (Y):</b> %{y}<br><b>Cognitive Load (Z):</b> %{z:.2f}<extra></extra>" 
                 )])
 
-                # 4. Strip the UI for a clean, floating cyberpunk aesthetic
+                # 4. Strip the UI but KEEP THE AXIS LABELS
                 fig_3d.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     height=280,
                     margin=dict(l=0, r=0, t=10, b=0),
                     scene=dict(
-                        xaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=''),
-                        yaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=''),
-                        zaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=''),
+                        # ADDED SUBTLE NEON AXIS TITLES
+                        xaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=dict(text='TIMELINE ➔', font=dict(color='#64748B', size=11))),
+                        yaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=dict(text='FOCUS DEPTH ➔', font=dict(color='#64748B', size=11))),
+                        zaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=dict(text='COGNITIVE LOAD ⇡', font=dict(color='#64748B', size=11))),
                         camera=dict(
-                            eye=dict(x=1.8, y=1.8, z=0.8), # Perfect isometric angle
+                            eye=dict(x=1.8, y=1.8, z=0.8),
                             up=dict(x=0, y=0, z=1)
                         )
                     )

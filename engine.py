@@ -1,5 +1,6 @@
 import os
 import json
+import streamlit as st
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -31,7 +32,7 @@ class SkillTrackerResponse(BaseModel):
 # 2. SEED ENGINE INFERENCE
 def generate_initial_schedule(user_raw_goals: str) -> DashboardPayload:
     """Invokes Gemini 2.5 Pro utilizing native structural constraint processing."""
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
     system_prompt = (
         "You are Apex, an elite AI efficiency engineer and performance mentor. "
@@ -54,7 +55,7 @@ def generate_initial_schedule(user_raw_goals: str) -> DashboardPayload:
 # 3. REAL-TIME REPAIR LOOP MECHANISM
 def repair_schedule(current_schedule_dict: dict, disruption_event: str) -> DashboardPayload:
     """Intercepts active state, models real-world friction, and mutates variables without breaking the schema."""
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
     repair_prompt = (
         f"CRITICAL SYSTEM DISRUPTION: The user's day has fractured due to this issue: '{disruption_event}'.\n"
@@ -81,7 +82,7 @@ def generate_ai_coach(
     total_tasks: int,
     upcoming_tasks: list
 ) -> str:
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
     # 🧠 Calculate the true mental cost of the remaining day
     total_cognitive_load = sum(task.get("cognitive_load", 5) for task in upcoming_tasks if isinstance(task, dict))
@@ -123,7 +124,7 @@ def generate_future_self(
     total_tasks: int,
     tasks_list: list  # <--- Added this to give the AI context!
 ) -> str:
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
     # Extract just the task titles so the AI knows WHAT the user is actually building
     task_context = [task.get("title", "Unknown Task") for task in tasks_list if isinstance(task, dict)]
@@ -206,7 +207,7 @@ def generate_skill_tracker(
     streak: int,
     blocks: list
 ) -> dict:
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
     completed = sum(1 for b in blocks if b.get("state") == "completed")
     total = len(blocks)
@@ -256,7 +257,7 @@ Provide a single, punchy, 1-sentence AI coaching insight (max 15 words) evaluati
             "insight": "Complete more focus sessions to calibrate your skill profile."
         }
 def generate_eod_insight(momentum_score: int, completed_tasks: int, total_tasks: int) -> str:
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
     prompt = f"""
     Analyze the user's day:
@@ -279,7 +280,7 @@ def generate_eod_insight(momentum_score: int, completed_tasks: int, total_tasks:
         return "Consistent effort created a stable baseline for tomorrow."
 def get_cognitive_load_analysis(task_title: str, task_context: str) -> dict:
     """Asks Gemini to weigh the task's true cost."""
-    client = genai.Client()
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
     prompt = f"""
     Analyze the following task: "{task_title}" with context: "{task_context}"
     Return ONLY a JSON object: {{"cognitive_load": int(1-10), "dopamine_drain": int(1-10)}}

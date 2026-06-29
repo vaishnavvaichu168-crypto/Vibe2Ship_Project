@@ -949,7 +949,7 @@ with radar_col2:
         st.rerun()
 
 # Row 2 Analytics Cards Rendering
-row2_col1, row2_col2, row2_col3 = st.columns([2.1, 1], gap="large")
+row2_col1, row2_col2 = st.columns([2.1, 1], gap="large")
 with row2_col1:
     # 🌀 MATHEMATICS OF CHAOS
     switches = 0

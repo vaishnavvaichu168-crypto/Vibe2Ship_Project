@@ -887,6 +887,22 @@ blocks = st.session_state["blocks"]
 
 with workspace_main:
     # ==========================================
+    # 🚨 AI TACTICAL PIVOT BANNER (FIXED INDENTATION)
+    # ==========================================
+    if st.session_state.get("ai_pivot_brief"):
+        st.markdown(f"""
+            <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid #EF4444; border-left: 6px solid #EF4444; border-radius: 8px; padding: 18px; margin-bottom: 25px;">
+                <div style="color: #F87171; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">
+                    ⚡ AI System Status
+                </div>
+                <div style="color: #ffffff; font-size: 16px; font-weight: 500; font-family: monospace;">
+                    {st.session_state['ai_pivot_brief']}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Today's schedule</h3>", unsafe_allow_html=True)
+    # ==========================================
     # UPGRADED COGNITIVE REDLINE SAFEGUARD CORE
     # ==========================================
     redline_risk = False

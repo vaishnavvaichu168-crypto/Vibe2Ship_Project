@@ -1227,32 +1227,17 @@ with workspace_main:
                     
                 except Exception as e:
                     error_msg = str(e)
-                    # 🚨 THE FIX: Catch rate limits and make them look like a feature, not a bug
+                    # 🚨 APEX FIX: Log the error, but DO NOT overwrite the matrix.
                     if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-                        st.warning("⚠️ Neural Link Overloaded: API rate limit reached. Engaging offline cache matrix...", icon="⚡")
+                        st.warning("⚠️ Neural Link Overloaded: API rate limit reached. Utilizing existing timeline cache...", icon="⚡")
                     else:
                         st.error(f"System Malfunction: {error_msg}") 
                     
-                    # Silently load the backup data so the UI doesn't crash
-                    st.session_state["blocks"] = DEFAULT_BLOCKS
-                    for block in st.session_state["blocks"]:
-                        block["state"] = "ready"
-
-                    # Save the backup to disk so it survives a refresh
-                    with open(DATA_FILE, "w") as f:
-                        json.dump({
-                            "blocks": st.session_state["blocks"],
-                            "streak": st.session_state.get("streak", 1),
-                            "last_active_date": st.session_state.get("last_active_date", "")
-                        }, f)
-
-                    if "skill_tracker" in st.session_state:
-                        del st.session_state["skill_tracker"]
-                    if "radar" in st.session_state:
-                        del st.session_state["radar"]
-                    if "eod_insight" in st.session_state:
-                        del st.session_state["eod_insight"]
+                    # Ensure a baseline exists only if the session state is completely empty
+                    if "blocks" not in st.session_state or not st.session_state["blocks"]:
+                        st.session_state["blocks"] = DEFAULT_BLOCKS
                         
+                    # Exit the generation loop without touching DATA_FILE
                     st.rerun()  
 
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)

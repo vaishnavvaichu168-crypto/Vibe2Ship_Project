@@ -550,7 +550,6 @@ if st.session_state.get("show_report", False):
 
     st.markdown("<h2 style='text-align: center; color: white; letter-spacing: 4px; font-weight: 800; margin-top: 20px; margin-bottom: 40px;'>END OF DAY REPORT</h2>", unsafe_allow_html=True)
     # --- 🌊 THE WATERFALL REVEAL ENGINE ---
-    with st.spinner("⏳ Synthesizing cognitive vectors and compiling matrix telemetry..."):
         
     # --------------------------------------
     st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>Momentum Timeline</h4>", unsafe_allow_html=True)

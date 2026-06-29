@@ -994,8 +994,8 @@ with row2_col1:
     </style>
     """
 
-    # 2. Render everything with unsafe_allow_html=True
-    st.markdown(glitch_css + f"""
+    # 2. Store the HTML in a variable
+    entropy_html = f"""
         <div class="dashboard-card {glitch_class}" style="height: 100%;">
             <div class="card-header"><span class="header-icon" style="color:{e_color}">{ICON_TARGET}</span>Thermodynamic Entropy</div>
             <div class="flex-container" style="margin-top: 15px;">
@@ -1013,7 +1013,10 @@ with row2_col1:
             </div>
             <div class="card-subtext" style="margin-top: 12px;">Measures timeline chaos and context-switch friction.</div>
         </div>
-    """, unsafe_allow_html=True)
+    """
+
+    # 3. 🚨 THE FIX: Use flatten_html() to strip the 4-space indentations!
+    st.markdown(glitch_css + flatten_html(entropy_html), unsafe_allow_html=True)
 
 with row2_col3:
     st.markdown(f"""

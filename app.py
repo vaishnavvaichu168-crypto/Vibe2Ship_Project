@@ -628,32 +628,72 @@ if st.session_state.get("show_report", False):
         with col_rep1:
             st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>AI Task Telemetry</h4>", unsafe_allow_html=True)
             with st.container(key="eod_chart_energy"):
-                task_names = [f"Task {i+1}" for i in range(len(st.session_state["blocks"]))]
-                load_scores = [i * 2 + 1 for i in range(len(st.session_state["blocks"]))]
-                drain_scores = [i * 1 + 2 for i in range(len(st.session_state["blocks"]))] 
+                import math
+                import plotly.graph_objects as go
+                
+                # 1. Generate the matrix grid (Zero API Load, Instant Math)
+                grid_size = 30
+                # Start with a faint wireframe floor for the whole day
+                z_data = [[0.05 for _ in range(grid_size)] for _ in range(grid_size)] 
 
-                fig_energy = go.Figure()
+                # 2. Map actual reality to the topography
+                blocks = st.session_state.get("blocks", [])
+                num_blocks = len(blocks)
+                
+                if num_blocks > 0:
+                    spacing = grid_size / (num_blocks + 1)
+                    
+                    for idx, block in enumerate(blocks):
+                        # ONLY build mountains for reality (completed tasks)
+                        if block.get("state") == "completed":
+                            
+                            # Focus blocks make massive mountains. Meetings make hills. Breaks make ripples.
+                            if block.get("block_type") == "focus":
+                                intensity = 2.5
+                            elif block.get("block_type") == "meeting":
+                                intensity = 1.2
+                            else:
+                                intensity = 0.4
+                                
+                            # Calculate where this mountain goes on the timeline
+                            center_x = int((idx + 1) * spacing)
+                            center_y = grid_size // 2 
+                            
+                            # Form the 3D Gaussian structure
+                            for i in range(grid_size):
+                                for j in range(grid_size):
+                                    distance_sq = (i - center_x)**2 + (j - center_y)**2
+                                    z_data[j][i] += intensity * math.exp(-distance_sq / 12.0)
 
-                fig_energy.add_trace(go.Scatter(
-                    x=task_names, y=load_scores, name="Cognitive Load",
-                    line=dict(color='#FF4B4B', width=3, shape='spline'),
-                    mode='lines+markers', fill='tozeroy', fillcolor='rgba(255, 75, 75, 0.15)'
-                ))
+                # 3. Render the Hologram
+                fig_3d = go.Figure(data=[go.Surface(
+                    z=z_data,
+                    colorscale='electric',
+                    showscale=False,
+                    opacity=0.85,
+                    contours=dict(
+                        z=dict(show=True, usecolormap=True, highlightcolor="white", project_z=True)
+                    )
+                )])
 
-                fig_energy.add_trace(go.Scatter(
-                    x=task_names, y=drain_scores, name="Dopamine Drain",
-                    line=dict(color='#8B5CF6', width=3, shape='spline'),
-                    mode='lines+markers'
-                ))
-
-                fig_energy.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=200, margin=dict(l=0, r=0, t=10, b=10),
-                    xaxis=dict(showgrid=False, showticklabels=False, zeroline=False),
-                    yaxis=dict(showgrid=False, showticklabels=False, zeroline=False),
-                    hovermode="x unified", showlegend=False,
-                    transition={'duration': 1200, 'easing': 'sin-in-out'}
+                # 4. Strip the UI for a clean, floating cyberpunk aesthetic
+                fig_3d.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    height=280,
+                    margin=dict(l=0, r=0, t=10, b=0),
+                    scene=dict(
+                        xaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=''),
+                        yaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=''),
+                        zaxis=dict(showbackground=False, showgrid=False, zeroline=False, showticklabels=False, title=''),
+                        camera=dict(
+                            eye=dict(x=1.8, y=1.8, z=0.8), # Perfect isometric angle
+                            up=dict(x=0, y=0, z=1)
+                        )
+                    )
                 )
-                st.plotly_chart(fig_energy, use_container_width=True, config={'displayModeBar': False}, key="energy_fig")
+                
+                st.plotly_chart(fig_3d, use_container_width=True, config={'displayModeBar': False}, key="energy_fig")
 
     with col_rep2:
         st.markdown("<h4 style='color: #94A3B8; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>Distribution</h4>", unsafe_allow_html=True)

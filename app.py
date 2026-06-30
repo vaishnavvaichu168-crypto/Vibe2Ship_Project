@@ -358,7 +358,13 @@ class ScheduleBlock(BaseModel):
 class ScheduleResponse(BaseModel):
     blocks: List[ScheduleBlock]
 
-DEFAULT_BLOCKS = []
+DEFAULT_BLOCKS = [{"time": "09:00 AM", "title": "Morning planning and email triage", "context": "Inbox zero and daily metrics", "block_type": "default", "badge": "Admin", "high_intensity": False, "state": "ready"},
+    {"time": "10:00 AM", "title": "EV Go-Kart motor controller firmware", "context": "Deep embedded programming", "block_type": "focus", "badge": "Focus", "high_intensity": True, "state": "ready"},
+    {"time": "11:30 AM", "title": "Team sync for hackathon", "context": "Presentation flow and slide review", "block_type": "meeting", "badge": "Meeting", "high_intensity": False, "state": "ready"},
+    {"time": "12:30 PM", "title": "Quick lunch", "context": "Hydrate and step away from screens", "block_type": "break", "badge": "Break", "high_intensity": False, "state": "ready"},
+    {"time": "02:00 PM", "title": "GATE aptitude mock test sprint", "context": "Timed high-pressure problem solving", "block_type": "focus", "badge": "Focus", "high_intensity": True, "state": "ready"},
+    {"time": "03:30 PM", "title": "IONYX air purifier sensor calibration", "context": "Hardware testing and data logging", "block_type": "focus", "badge": "Focus", "high_intensity": True, "state": "ready"},
+    {"time": "05:00 PM", "title": "Final mentor sync with Professor Arun", "context": "Project review and feedback", "block_type": "meeting", "badge": "Meeting", "high_intensity": False, "state": "ready"}]
 
 DATA_FILE = "planner_data.json"
 

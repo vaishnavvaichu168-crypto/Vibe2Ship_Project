@@ -1380,17 +1380,30 @@ with workspace_panel:
     col_side1, col_side2 = st.columns(2)
     
     with col_side1:
-        if st.button("🧠 AI Coaching", use_container_width=True):
+        # 🚨 THE FIX: Added a unique 'key' so Streamlit never gets confused
+        if st.button("🧠 AI Coaching", use_container_width=True, key="ai_coach_btn"):
             upcoming_tasks = [block["title"] for block in st.session_state["blocks"] if block.get("state") != "completed"][:3]
             try:
                 raw_msg = generate_ai_coach(momentum_score, completed_tasks, total_tasks, upcoming_tasks)
-                # 🚨 THE FIX: Intercept the raw error string before it hits the UI
                 if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
                     st.session_state["ai_coach_message"] = "⚠️ Cognitive link cooling down: API rate limit reached. Please allow 60 seconds for neural reset."
                 else:
                     st.session_state["ai_coach_message"] = raw_msg
             except Exception:
                 st.session_state["ai_coach_message"] = "⚠️ Cognitive link cooling down: API rate limit reached. Please allow 60 seconds for neural reset."
+            st.rerun()
+
+    with col_side2:
+        # 🚨 THE FIX: Added a unique 'key' to bypass the duplicate error
+        if st.button("🔮 Future Self", use_container_width=True, key="future_self_btn"):
+            try:
+                raw_msg = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
+                if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
+                    st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
+                else:
+                    st.session_state["future_self_message"] = raw_msg
+            except Exception:
+                st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
             st.rerun()
 
     with col_side2:

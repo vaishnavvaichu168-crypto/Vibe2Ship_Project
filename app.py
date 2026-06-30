@@ -1537,13 +1537,17 @@ with workspace_panel:
         
         <div style="padding: 25px 20px; display: flex; gap: 30px; align-items: center; background: rgba(0,0,0,0.2);">
             
-            <div style="flex-shrink: 0; position: relative; width: 70px; height: 160px; background: #0F172A; border-radius: 35px; border: 3px solid #1E293B; box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px {glow_color}; overflow: hidden;">
+            <div style="flex-shrink: 0; position: relative; width: 70px; height: 160px; background: #0F172A; border-radius: 35px; border: 3px solid #1E293B; box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px {glow_color}; overflow: hidden; animation: tubeFloat 4s ease-in-out infinite;">
                 
-                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: {display_height}%; background: {fluid_color}; box-shadow: 0 0 30px {fluid_color}; transition: height 1s ease-in-out, background 1s ease;"></div>
-                
-                <div style="position: absolute; bottom: {display_height}%; left: -100%; width: 300%; height: 300px; background: #0F172A; border-radius: 40%; animation: spinFluid {wave_speed} linear infinite; margin-bottom: -150px; opacity: 0.9;"></div>
-                <div style="position: absolute; bottom: {display_height}%; left: -100%; width: 300%; height: 300px; background: #0F172A; border-radius: 45%; animation: spinFluid calc({wave_speed} * 1.3) linear infinite; margin-bottom: -140px; opacity: 0.9;"></div>
-                
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: {display_height}%; background: {fluid_color}; box-shadow: 0 0 30px {fluid_color}; transition: height 1s ease-in-out, background 1s ease;">
+                    <div style="position: absolute; top: -55px; left: 50%; width: 220px; height: 130px; margin-left: -110px; background: {fluid_color}; border-radius: 45%; animation: spinFluid {wave_speed} linear infinite;"></div>
+                    <div style="position: absolute; top: -48px; left: 50%; width: 220px; height: 130px; margin-left: -110px; background: {fluid_color}; opacity: 0.65; border-radius: 42%; animation: spinFluid calc({wave_speed} * 1.4) linear infinite reverse;"></div>
+                </div>
+
+                <div style="position: absolute; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); left: 22px; bottom: 10px; animation: bubbleRise 2.6s ease-in infinite;"></div>
+                <div style="position: absolute; width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.4); left: 42px; bottom: 10px; animation: bubbleRise 3.4s ease-in infinite 0.8s;"></div>
+                <div style="position: absolute; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.45); left: 32px; bottom: 10px; animation: bubbleRise 3s ease-in infinite 1.6s;"></div>
+
                 <div style="position: absolute; top: 5%; left: 10%; width: 20%; height: 90%; background: linear-gradient(to right, rgba(255,255,255,0.15), transparent); border-radius: 20px; pointer-events: none;"></div>
             </div>
 
@@ -1586,11 +1590,21 @@ with workspace_panel:
                 0% {{ transform: rotate(0deg); }}
                 100% {{ transform: rotate(360deg); }}
             }}
+            @keyframes tubeFloat {{
+                0%, 100% {{ transform: translateY(0); }}
+                50% {{ transform: translateY(-4px); }}
+            }}
+            @keyframes bubbleRise {{
+                0% {{ transform: translateY(0) scale(1); opacity: 0; }}
+                15% {{ opacity: 0.75; }}
+                85% {{ opacity: 0.25; }}
+                100% {{ transform: translateY(-115px) scale(0.4); opacity: 0; }}
+            }}
         </style>
     </div>
     """
     
-    st.markdown(flatten_html(pipeline_html), unsafe_allow_html=True)
+    st.markdown(pipeline_html, unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

@@ -1257,13 +1257,31 @@ with workspace_main:
                 except Exception as e:
                     error_msg = str(e)
                     if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-                        st.warning("⚠️ Neural Link Overloaded: API rate limit reached. Utilizing existing timeline cache...", icon="⚡")
+                        st.warning("⚠️ Neural Link Overloaded: API rate limit reached. Deploying fresh tactical matrix...", icon="⚡")
                     else:
-                        # THE ERROR MUST STAY ON SCREEN
                         st.error(f"System Malfunction: {error_msg}") 
                     
-                    if "blocks" not in st.session_state or not st.session_state["blocks"]:
-                        st.session_state["blocks"] = DEFAULT_BLOCKS  
+                    # 🚨 THE FIX: Brutally force a completely fresh, 0-data schedule
+                    st.session_state["blocks"] = [dict(b) for b in DEFAULT_BLOCKS]
+                    st.session_state["dismiss_redline"] = False 
+                    st.session_state["break_counter"] = 1
+                    
+                    # 🚨 Nuke the old analytics caches so the dashboard resets to 0%
+                    if "skill_tracker" in st.session_state:
+                        del st.session_state["skill_tracker"]
+                    if "radar" in st.session_state:
+                        del st.session_state["radar"]
+
+                    # 🚨 Overwrite the hard drive file immediately
+                    with open(DATA_FILE, "w") as f:
+                        json.dump({
+                            "blocks": st.session_state["blocks"],
+                            "streak": st.session_state.get("streak", 1),
+                            "last_active_date": st.session_state.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
+                        }, f)
+                    
+                    time.sleep(1) # Give the UI a microsecond to clear
+                    st.rerun()  
 
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)
 

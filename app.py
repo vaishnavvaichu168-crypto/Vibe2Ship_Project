@@ -532,7 +532,17 @@ def show_impact_preview(task_idx, current_momentum, current_streak):
 with st.sidebar:
     st.markdown("<h2 style='color: white; font-weight: 700; margin-bottom:0px;'>Control Desk</h2>", unsafe_allow_html=True)
     st.caption("⚡ Premium Scheduling Engine")
+    
     st.markdown("---")
+    
+    # 🚨 THE NUCLEAR RESET BUTTON (Deletes the ghost JSON file!)
+    if st.button("⚠️ Reset Entire Dashboard", type="primary", use_container_width=True):
+        if os.path.exists(DATA_FILE):
+            os.remove(DATA_FILE) # Permanently deletes the saved ghost data
+        for key in list(st.session_state.keys()):
+            del st.session_state[key] # Wipes temporary memory
+        st.rerun() # Reloads the app pristine and clean
+        
     DEMO_MODE = st.checkbox("🚀 Live Demo Mode (Instant Mock)", value=False)
     st.markdown("### 📝 Active Task Injection")
     raw_task_stream = st.text_area(

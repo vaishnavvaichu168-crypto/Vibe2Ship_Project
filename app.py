@@ -1480,107 +1480,117 @@ with workspace_panel:
 
     st.markdown(flatten_html(skill_html), unsafe_allow_html=True)
 
-    # 4. Neural Telemetry HUD (Replaces Cognitive Matrix & Up Next)
+    # 4. Cognitive Viscosity Pipeline (Thermodynamic UI)
     blocks = st.session_state.get("blocks", [])
     
-    # Calculate the aggregate load of ONLY the tasks you haven't finished yet
+    # Calculate aggregate load of active tasks
     active_blocks = [b for b in blocks if b.get("state") != "completed"]
     total_active = len(active_blocks)
 
     if total_active > 0:
-        # Failsafe extraction just like before
+        # Failsafe extraction
         avg_load = sum(float(b.get("cognitive_load", 5.0)) for b in active_blocks) / total_active
         avg_drain = sum(float(b.get("dopamine_drain", 5.0)) for b in active_blocks) / total_active
     else:
-        avg_load, avg_drain = 0.0, 0.0 # Day is cleared!
+        avg_load, avg_drain = 0.0, 0.0
 
     # Convert AI scores (1-10) into HUD percentages (0-100%)
     load_pct = min(100, int((avg_load / 10.0) * 100))
     drain_pct = min(100, int((avg_drain / 10.0) * 100))
-    # Burnout is the multiplier of high load AND high drain
     burnout_pct = min(100, int(((avg_load * avg_drain) / 100.0) * 100)) 
 
-    # Dynamic State Machine: The HUD physically changes color based on your mental danger level
+    # Viscosity Physics & Colors State Machine
     if total_active == 0:
-        core_color, core_state, anim_speed = "#10B981", "SYSTEM RECOVERY", "3s" # Green
-        insight_text = "All tasks completed. System is cooling down. Excellent work today."
+        fluid_color = "#10B981" # Green
+        glow_color = "rgba(16, 185, 129, 0.4)"
+        status_text = "SYSTEM PURGED"
+        wave_speed = "6s" # Calm
+        height_override = 10 # Just a little puddle left
     elif burnout_pct >= 65:
-        core_color, core_state, anim_speed = "#F43F5E", "CRITICAL FRICTION", "0.6s" # Red (Fast Pulse)
-        insight_text = "⚠️ Warning: Upcoming schedule has extremely high friction. High risk of task avoidance detected."
-    elif load_pct >= 70:
-        core_color, core_state, anim_speed = "#8B5CF6", "DEEP FOCUS ACTIVE", "1.5s" # Purple
-        insight_text = "Heavy cognitive load detected in upcoming queue. Isolate yourself from distractions."
+        fluid_color = "#F43F5E" # Boiling Red
+        glow_color = "rgba(244, 63, 94, 0.6)"
+        status_text = "CRITICAL OVERHEAT"
+        wave_speed = "0.7s" # Violent boil
+        height_override = max(80, load_pct) # Force high volume for visual impact
+    elif load_pct >= 60 or drain_pct >= 60:
+        fluid_color = "#F59E0B" # Amber/Orange
+        glow_color = "rgba(245, 158, 11, 0.5)"
+        status_text = "ELEVATED VISCOSITY"
+        wave_speed = "2s" # Churning
+        height_override = max(50, load_pct)
     else:
-        core_color, core_state, anim_speed = "#06B6D4", "OPTIMAL BANDWIDTH", "2s" # Cyan (Calm Breath)
-        insight_text = "Schedule is highly balanced. You have the bandwidth to execute efficiently."
+        fluid_color = "#06B6D4" # Optimal Cyan
+        glow_color = "rgba(6, 182, 212, 0.4)"
+        status_text = "FLOW STABLE"
+        wave_speed = "5s" # Slow, lazy wave
+        height_override = load_pct
 
-    # Build the futuristic HTML/CSS UI
-    hud_html = f"""
-    <div class="dashboard-card" style="padding: 0;">
-        <div class="card-header" style="color: {core_color}; padding: 15px 20px 0 20px; letter-spacing: 1.5px;">
-            <span class="header-icon">📡</span> NEURAL TELEMETRY
+    # Ensure min height for visuals so the wave math doesn't break
+    display_height = max(15, height_override)
+
+    # Build the futuristic HTML/CSS Viscosity Reactor
+    pipeline_html = f"""
+    <div class="dashboard-card" style="padding: 0; overflow: hidden;">
+        <div class="card-header" style="color: {fluid_color}; padding: 15px 20px 0 20px; letter-spacing: 1.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
+            <span class="header-icon">🧪</span> COGNITIVE VISCOSITY
         </div>
         
-        <div style="padding: 20px; display: flex; gap: 25px; align-items: center;">
+        <div style="padding: 25px 20px; display: flex; gap: 30px; align-items: center; background: rgba(0,0,0,0.2);">
             
-            <div style="flex-shrink: 0; position: relative; width: 85px; height: 85px;">
-                <div style="position: absolute; inset: 0; border-radius: 50%; border: 2px dashed {core_color}; animation: spin 10s linear infinite; opacity: 0.7;"></div>
-                <div style="position: absolute; inset: 8px; border-radius: 50%; background: {core_color}; opacity: 0.2; animation: hudPulse {anim_speed} infinite;"></div>
-                <div style="position: absolute; inset: 26px; border-radius: 50%; background: {core_color}; box-shadow: 0 0 20px {core_color};"></div>
+            <div style="flex-shrink: 0; position: relative; width: 70px; height: 160px; background: #0F172A; border-radius: 35px; border: 3px solid #1E293B; box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px {glow_color}; overflow: hidden;">
+                
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: {display_height}%; background: {fluid_color}; box-shadow: 0 0 30px {fluid_color}; transition: height 1s ease-in-out, background 1s ease;"></div>
+                
+                <div style="position: absolute; bottom: {display_height}%; left: -100%; width: 300%; height: 300px; background: #0F172A; border-radius: 40%; animation: spinFluid {wave_speed} linear infinite; margin-bottom: -150px; opacity: 0.9;"></div>
+                <div style="position: absolute; bottom: {display_height}%; left: -100%; width: 300%; height: 300px; background: #0F172A; border-radius: 45%; animation: spinFluid calc({wave_speed} * 1.3) linear infinite; margin-bottom: -140px; opacity: 0.9;"></div>
+                
+                <div style="position: absolute; top: 5%; left: 10%; width: 20%; height: 90%; background: linear-gradient(to right, rgba(255,255,255,0.15), transparent); border-radius: 20px; pointer-events: none;"></div>
             </div>
 
             <div style="flex-grow: 1;">
-                <div style="color: {core_color}; font-size: 11px; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px; text-transform: uppercase;">
-                    STATUS: {core_state}
+                <div style="color: {fluid_color}; font-size: 13px; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; text-shadow: 0 0 10px {glow_color}; transition: color 1s ease;">
+                    STATUS: {status_text}
                 </div>
 
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;">
-                        <span>COGNITIVE LOAD</span><span style="color:#F8FAFC;">{load_pct}%</span>
+                        <span>VOLUME (LOAD)</span><span style="color:#F8FAFC;">{load_pct}%</span>
                     </div>
-                    <div style="width: 100%; background: rgba(15, 23, 42, 0.8); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid #1E293B;">
-                        <div style="width: {load_pct}%; background: #3B82F6; height: 100%; box-shadow: 0 0 10px #3B82F6; transition: width 1s ease-in-out;"></div>
+                    <div style="width: 100%; background: #0F172A; height: 4px; border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="width: {load_pct}%; background: #3B82F6; height: 100%; transition: width 1s ease-in-out;"></div>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;">
-                        <span>DOPAMINE DRAIN</span><span style="color:#F8FAFC;">{drain_pct}%</span>
+                        <span>TEMP (DRAIN)</span><span style="color:#F8FAFC;">{drain_pct}%</span>
                     </div>
-                    <div style="width: 100%; background: rgba(15, 23, 42, 0.8); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid #1E293B;">
-                        <div style="width: {drain_pct}%; background: #F59E0B; height: 100%; box-shadow: 0 0 10px #F59E0B; transition: width 1s ease-in-out;"></div>
+                    <div style="width: 100%; background: #0F172A; height: 4px; border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="width: {drain_pct}%; background: #F59E0B; height: 100%; transition: width 1s ease-in-out;"></div>
                     </div>
                 </div>
-
+                
                 <div>
                     <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;">
-                        <span>BURNOUT RISK</span><span style="color:#F8FAFC;">{burnout_pct}%</span>
+                        <span>PRESSURE (RISK)</span><span style="color:#F8FAFC;">{burnout_pct}%</span>
                     </div>
-                    <div style="width: 100%; background: rgba(15, 23, 42, 0.8); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid #1E293B;">
-                        <div style="width: {burnout_pct}%; background: #F43F5E; height: 100%; box-shadow: 0 0 10px #F43F5E; transition: width 1s ease-in-out;"></div>
+                    <div style="width: 100%; background: #0F172A; height: 4px; border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="width: {burnout_pct}%; background: #F43F5E; height: 100%; transition: width 1s ease-in-out;"></div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div style="padding: 12px 20px 20px 20px; background: rgba(255,255,255,0.02); border-top: 1px solid #1E293B;">
-             <div style="color: {core_color}; font-size: 12px; line-height: 1.5; font-weight: 500;">
-                {insight_text}
-             </div>
-        </div>
-        
         <style>
-            @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
-            @keyframes hudPulse {{
-                0% {{ transform: scale(0.95); opacity: 0.3; }}
-                50% {{ transform: scale(1.1); opacity: 0.1; }}
-                100% {{ transform: scale(0.95); opacity: 0.3; }}
+            @keyframes spinFluid {{ 
+                0% {{ transform: rotate(0deg); }}
+                100% {{ transform: rotate(360deg); }}
             }}
         </style>
     </div>
     """
     
-    st.markdown(flatten_html(hud_html), unsafe_allow_html=True)
+    st.markdown(pipeline_html, unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

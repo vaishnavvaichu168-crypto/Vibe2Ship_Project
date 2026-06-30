@@ -1498,8 +1498,10 @@ with workspace_panel:
     load_pct = min(100, int((avg_load / 10.0) * 100))
     drain_pct = min(100, int((avg_drain / 10.0) * 100))
     burnout_pct = min(100, int(((avg_load * avg_drain) / 100.0) * 100))
-    tasks_completed = YOUR_EXISTING_COMPLETED_VARIABLE  # <-- REPLACE THIS with your actual variable
-    total_tasks = YOUR_EXISTING_TOTAL_VARIABLE
+    
+    # 🚨 SURGICAL FIX: Automatically calculate completed tasks directly from the blocks array
+    tasks_completed = len([b for b in blocks if b.get("state") == "completed"])
+    total_tasks = len(blocks)
 
     # Dynamic Momentum Vector (Derived directly from your Daily Focus Goal)
     focus_goal_pct = int((tasks_completed / total_tasks) * 100) if total_tasks > 0 else 0
@@ -1614,7 +1616,8 @@ with workspace_panel:
     </div>
     """
     
-    st.markdown(flatten_html(pipeline_html), unsafe_allow_html=True)
+    # 🚨 SURGICAL FIX: Remove flatten_html so the CSS animation engine actually works!
+    st.markdown(pipeline_html, unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

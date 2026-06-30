@@ -59,9 +59,17 @@ def mutate_schedule_with_ai(current_blocks, anomaly_text):
         return json.loads(match.group(0))
         
     except Exception as e:
-        # 🚨 FATAL ERROR ROUTING: Push the Python crash directly to the UI Banner
+        error_msg = str(e)
+        
+        # 🚨 THE FIX: Intercept rate limits specifically for the Reality Changed banner
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            safe_brief = "⚠️ Neural Link Overloaded: Free-tier API rate limit reached. Please wait 60 seconds before executing another timeline pivot."
+        else:
+            safe_brief = f"System Malfunction: {error_msg}"
+            
+        # Return the safe message and keep the current schedule completely intact
         return {
-            "tactical_brief": f"SYSTEM CRASH: {str(e)}", 
+            "tactical_brief": safe_brief, 
             "schedule": current_blocks
         }
 # ==========================================================

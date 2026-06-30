@@ -1393,9 +1393,11 @@ with workspace_panel:
             st.rerun()
 
     with col_side2:
-        if st.button("🔮 Future Self", use_container_width=True, key="future_self_btn_v3"):
+        # This is the ONLY "Future Self" button allowed. 
+        if st.button("🔮 Future Self", use_container_width=True, key="unique_future_self_btn"):
             try:
                 raw_msg = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
+                # Intercept API errors gracefully
                 if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
                     st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached."
                 else:

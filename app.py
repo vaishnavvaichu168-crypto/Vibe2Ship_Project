@@ -358,13 +358,8 @@ class ScheduleBlock(BaseModel):
 class ScheduleResponse(BaseModel):
     blocks: List[ScheduleBlock]
 
-DEFAULT_BLOCKS = [
-    {"time": "8:00 AM", "title": "Morning planning & inbox", "context": "Review priority metrics", "block_type": "default", "badge": "Inbox", "high_intensity": False, "state": "ready"},
-    {"time": "9:00 AM", "title": "Deep work — Q3 roadmap draft", "context": "System compilation block", "block_type": "focus", "badge": "Focus", "high_intensity": True, "state": "ready"},
-    {"time": "11:00 AM", "title": "Design sync", "context": "Cross-functional framework alignment", "block_type": "meeting", "badge": "Meeting", "high_intensity": False, "state": "ready"},
-    {"time": "12:00 PM", "title": "Lunch & walk", "context": "Cognitive recovery phase", "block_type": "break", "badge": "Break", "high_intensity": False, "state": "ready"},
-    {"time": "1:00 PM", "title": "Focus block — API integration", "context": "Hardcoding interface logic", "block_type": "focus", "badge": "Focus", "high_intensity": True, "state": "ready"},
-]
+DEFAULT_BLOCKS = []
+
 DATA_FILE = "planner_data.json"
 
 if "ai_coach_message" not in st.session_state:

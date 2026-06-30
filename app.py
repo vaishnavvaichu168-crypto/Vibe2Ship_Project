@@ -1499,37 +1499,42 @@ with workspace_panel:
     drain_pct = min(100, int((avg_drain / 10.0) * 100))
     burnout_pct = min(100, int(((avg_load * avg_drain) / 100.0) * 100)) 
 
-    # Viscosity Physics & Colors State Machine (APEX TUNED)
-    if total_active == 0:
-        fluid_color = "#10B981" # Green
-        glow_color = "rgba(16, 185, 129, 0.4)"
-        status_text = "SYSTEM PURGED"
-        wave_speed = "6s" # Calm
-        height_override = 18 # Baseline anchor to guarantee visual rendering
-    elif burnout_pct >= 65:
-        fluid_color = "#F43F5E" # Boiling Red
-        glow_color = "rgba(244, 63, 94, 0.6)"
-        status_text = "CRITICAL OVERHEAT"
-        wave_speed = "0.7s" # Violent boil
-        # Mathematical bounding: Guarantee wave peak remains within container limits (max 92%)
-        height_override = min(92, max(75, load_pct + (burnout_pct * 0.2)))
-    elif load_pct >= 60 or drain_pct >= 60:
-        fluid_color = "#F59E0B" # Amber/Orange
-        glow_color = "rgba(245, 158, 11, 0.5)"
-        status_text = "ELEVATED VISCOSITY"
-        wave_speed = "2s" # Churning
-        # Algorithmic mid-tier scaling
-        height_override = min(74, max(45, (load_pct * 0.6) + (drain_pct * 0.4)))
-    else:
-        fluid_color = "#06B6D4" # Optimal Cyan
-        glow_color = "rgba(6, 182, 212, 0.4)"
-        status_text = "FLOW STABLE"
-        wave_speed = "5s" # Slow, lazy wave
-        # Smooth interpolation for low states, ensuring minimum wave mechanics
-        height_override = min(44, max(22, load_pct * 0.8))
+    # Dynamic Momentum Vector (Derived directly from your Daily Focus Goal)
+    focus_goal_pct = int((tasks_completed / total_tasks) * 100) if total_tasks > 0 else 0
 
-    # Mathematical dampening to guarantee wave amplitude surface visibility 
-    display_height = min(95, max(18, height_override))
+    # Viscosity Fluid Mechanics State Machine (APEX LIVE ENGINE)
+    if focus_goal_pct == 100:
+        fluid_color = "#10B981"      # Emerald Green
+        glow_color = "rgba(16, 185, 129, 0.6)"
+        status_text = "MISSION ACCOMPLISHED // SYSTEM PURGED"
+        wave_speed = "3.5s"          # Fully stabilized triumphant pulse
+    elif focus_goal_pct >= 80:
+        fluid_color = "#F43F5E"      # Overclock Crimson
+        glow_color = "rgba(244, 63, 94, 0.6)"
+        status_text = "CRITICAL OVERCLOCK // PUSH LIMITS"
+        wave_speed = "0.7s"          # Hyper-violent boiling frequency
+    elif focus_goal_pct >= 60:
+        fluid_color = "#F59E0B"      # Electric Amber
+        glow_color = "rgba(245, 158, 11, 0.5)"
+        status_text = "ELEVATED COMPRESSION // HIGH VELOCITY"
+        wave_speed = "1.3s"          # Rapid high-frequency churning
+    elif focus_goal_pct >= 35:
+        fluid_color = "#8B5CF6"      # Kinetic Violet
+        glow_color = "rgba(139, 92, 246, 0.5)"
+        status_text = "KINETIC MOMENTUM // CORE ENGAGED"
+        wave_speed = "2.2s"          # Active, surging fluid currents
+    else:
+        fluid_color = "#06B6D4"      # Ice Cyan
+        glow_color = "rgba(6, 182, 212, 0.4)"
+        status_text = "COGNITIVE IGNITION // FLOW STABLE"
+        wave_speed = "4s"            # Smooth, calm baseline flow
+
+    # Linear Displacement Tracking: The fluid level physically rises with EVERY single task completed
+    if focus_goal_pct == 0:
+        display_height = 18          # Empty baseline anchor to maintain HUD visibility
+    else:
+        # Bounded mapping to ensure fluid height closely follows execution percentage
+        display_height = min(96, max(22, focus_goal_pct))
 
     # Build the futuristic HTML/CSS Viscosity Reactor
     pipeline_html = f"""

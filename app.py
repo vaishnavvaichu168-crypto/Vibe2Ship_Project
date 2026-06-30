@@ -1480,112 +1480,103 @@ with workspace_panel:
 
     st.markdown(flatten_html(skill_html), unsafe_allow_html=True)
 
-    # 4. The Cognitive Resistance Matrix (Replaces "Up Next")
-    import random
-    
+    # 4. Neural Telemetry HUD (Replaces Cognitive Matrix & Up Next)
     blocks = st.session_state.get("blocks", [])
     
-    # Analyze the user's active psychology (Bulletproof casting)
-    high_friction_count = sum(1 for b in blocks if float(b.get("cognitive_load", 5)) >= 7 and float(b.get("dopamine_drain", 5)) >= 7 and b.get("state") != "completed")
-    
-    if high_friction_count > 0:
-        insight_text = f"You have {high_friction_count} active tasks in the high-friction zone. AI suggests breaking these down tomorrow to reduce procrastination."
-        insight_color = "#F43F5E" # Warning Red
+    # Calculate the aggregate load of ONLY the tasks you haven't finished yet
+    active_blocks = [b for b in blocks if b.get("state") != "completed"]
+    total_active = len(active_blocks)
+
+    if total_active > 0:
+        # Failsafe extraction just like before
+        avg_load = sum(float(b.get("cognitive_load", 5.0)) for b in active_blocks) / total_active
+        avg_drain = sum(float(b.get("dopamine_drain", 5.0)) for b in active_blocks) / total_active
     else:
-        insight_text = "Excellent task balance today. Low risk of psychological friction."
-        insight_color = "#10B981" # Safe Green
+        avg_load, avg_drain = 0.0, 0.0 # Day is cleared!
 
-    matrix_html = f"""
-    <div class="dashboard-card">
-        <div class="card-header" style="color: #F43F5E; letter-spacing: 1px;"><span class="header-icon">🧠</span> COGNITIVE RESISTANCE MATRIX</div>
-        <p style="font-size: 12.5px; color:#94A3B8; margin-top: 10px; margin-bottom: 18px; line-height: 1.5;">
-            Hover over dots to map task psychology. <br><span style="color:#E2E8F0;">X-Axis:</span> Dopamine Drain (Tedious ➔) <br><span style="color:#E2E8F0;">Y-Axis:</span> Cognitive Load (Hard ⇡)
-        </p>
-        
-        <div style="position: relative; width: 100%; aspect-ratio: 1.25/1; background: rgba(15, 23, 42, 0.4); border: 1px solid #1E293B; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
-            <div style="position: absolute; top:50%; left:0; width:100%; height:1px; background: rgba(148, 163, 184, 0.2);"></div>
-            <div style="position: absolute; top:0; left:50%; width:1px; height:100%; background: rgba(148, 163, 184, 0.2);"></div>
-            
-            <div style="position:absolute; top:8px; left:8px; font-size:9px; font-weight:700; color:#3B82F6; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Deep Work</div>
-            <div style="position:absolute; top:8px; right:8px; font-size:9px; font-weight:700; color:#F43F5E; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Burnout Risk</div>
-            <div style="position:absolute; bottom:8px; left:8px; font-size:9px; font-weight:700; color:#10B981; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Recovery</div>
-            <div style="position:absolute; bottom:8px; right:8px; font-size:9px; font-weight:700; color:#F59E0B; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Admin Grind</div>
-    """
+    # Convert AI scores (1-10) into HUD percentages (0-100%)
+    load_pct = min(100, int((avg_load / 10.0) * 100))
+    drain_pct = min(100, int((avg_drain / 10.0) * 100))
+    # Burnout is the multiplier of high load AND high drain
+    burnout_pct = min(100, int(((avg_load * avg_drain) / 100.0) * 100)) 
 
-    # Dynamically plot every task with Bulletproof Failsafe & Jitter
-    for idx, b in enumerate(blocks):
-        # 🚨 FIX 1: Brutal type-casting to catch string numbers like "5"
-        try:
-            raw_load = float(b.get("cognitive_load", 5))
-            raw_drain = float(b.get("dopamine_drain", 5))
-        except (ValueError, TypeError):
-            raw_load, raw_drain = 5.0, 5.0
-            
-        # 🚨 FIX 2: If data is 5.0, force it to scatter dynamically across quadrants
-        if raw_load == 5.0 and raw_drain == 5.0:
-            b_type = b.get("block_type", "default")
-            variance = len(b.get("title", "")) % 4  # Creates a 0 to 3 spread
-            
-            if b_type == "focus":
-                raw_load, raw_drain = 6.5 + (variance * 0.5), 1.5 + (variance * 0.5)
-            elif b_type == "meeting":
-                raw_load, raw_drain = 3.5 + (variance * 0.5), 6.5 + (variance * 0.5)
-            elif b_type == "break":
-                raw_load, raw_drain = 1.5 + (variance * 0.5), 1.5 + (variance * 0.5)
-            else:
-                raw_load, raw_drain = 4.0 + (variance * 0.5), 4.0 + (variance * 0.5)
+    # Dynamic State Machine: The HUD physically changes color based on your mental danger level
+    if total_active == 0:
+        core_color, core_state, anim_speed = "#10B981", "SYSTEM RECOVERY", "3s" # Green
+        insight_text = "All tasks completed. System is cooling down. Excellent work today."
+    elif burnout_pct >= 65:
+        core_color, core_state, anim_speed = "#F43F5E", "CRITICAL FRICTION", "0.6s" # Red (Fast Pulse)
+        insight_text = "⚠️ Warning: Upcoming schedule has extremely high friction. High risk of task avoidance detected."
+    elif load_pct >= 70:
+        core_color, core_state, anim_speed = "#8B5CF6", "DEEP FOCUS ACTIVE", "1.5s" # Purple
+        insight_text = "Heavy cognitive load detected in upcoming queue. Isolate yourself from distractions."
+    else:
+        core_color, core_state, anim_speed = "#06B6D4", "OPTIMAL BANDWIDTH", "2s" # Cyan (Calm Breath)
+        insight_text = "Schedule is highly balanced. You have the bandwidth to execute efficiently."
 
-        # 🚨 FIX 3: Organic Jitter (This makes it physically impossible for dots to perfectly hide each other)
-        jitter_x = random.uniform(-2.0, 2.0)
-        jitter_y = random.uniform(-2.0, 2.0)
-
-        # Convert to CSS percentages
-        top_pos = max(5, min(95, (100 - (raw_load * 10)) + jitter_y)) 
-        left_pos = max(5, min(95, (raw_drain * 10) + jitter_x))
-        
-        # Stagger the floating animation so they move fluidly
-        float_delay = (idx % 4) * 0.4 
-        
-        # Color & Animation Logic
-        if b.get("state") == "completed":
-            color = "#10B981" # Green
-            glow = "0 0 10px rgba(16,185,129,0.5)"
-            z_index = 1
-            animation_css = f"animation: floatDot 3s ease-in-out {float_delay}s infinite;"
-        elif b.get("state") == "in_focus":
-            color = "#8B5CF6" # Purple
-            glow = "0 0 20px #8B5CF6"
-            animation_css = "animation: pulseFocus 1.5s infinite;" 
-            z_index = 10
-        else:
-            color = "#3B82F6" # Neon Blue
-            glow = "0 0 12px #3B82F6"
-            z_index = 5
-            animation_css = f"animation: floatDot 3s ease-in-out {float_delay}s infinite;"
-            
-        matrix_html += f"""
-            <div title="{b.get('title', 'Task')}" style="position: absolute; top:{top_pos}%; left:{left_pos}%; width:14px; height:14px; background:{color}; border-radius:50%; transform: translate(-50%, -50%); box-shadow: {glow}; cursor: pointer; border: 2px solid #0F111A; transition: all 0.3s ease; z-index: {z_index}; {animation_css}"></div>
-        """
-
-    # 🚨 FIX 4: NO FLATTEN_HTML. We inject the raw CSS to protect the animation engine from being broken.
-    matrix_html += f"""
+    # Build the futuristic HTML/CSS UI
+    hud_html = f"""
+    <div class="dashboard-card" style="padding: 0;">
+        <div class="card-header" style="color: {core_color}; padding: 15px 20px 0 20px; letter-spacing: 1.5px;">
+            <span class="header-icon">📡</span> NEURAL TELEMETRY
         </div>
+        
+        <div style="padding: 20px; display: flex; gap: 25px; align-items: center;">
+            
+            <div style="flex-shrink: 0; position: relative; width: 85px; height: 85px;">
+                <div style="position: absolute; inset: 0; border-radius: 50%; border: 2px dashed {core_color}; animation: spin 10s linear infinite; opacity: 0.7;"></div>
+                <div style="position: absolute; inset: 8px; border-radius: 50%; background: {core_color}; opacity: 0.2; animation: hudPulse {anim_speed} infinite;"></div>
+                <div style="position: absolute; inset: 26px; border-radius: 50%; background: {core_color}; box-shadow: 0 0 20px {core_color};"></div>
+            </div>
+
+            <div style="flex-grow: 1;">
+                <div style="color: {core_color}; font-size: 11px; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px; text-transform: uppercase;">
+                    STATUS: {core_state}
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;">
+                        <span>COGNITIVE LOAD</span><span style="color:#F8FAFC;">{load_pct}%</span>
+                    </div>
+                    <div style="width: 100%; background: rgba(15, 23, 42, 0.8); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid #1E293B;">
+                        <div style="width: {load_pct}%; background: #3B82F6; height: 100%; box-shadow: 0 0 10px #3B82F6; transition: width 1s ease-in-out;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;">
+                        <span>DOPAMINE DRAIN</span><span style="color:#F8FAFC;">{drain_pct}%</span>
+                    </div>
+                    <div style="width: 100%; background: rgba(15, 23, 42, 0.8); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid #1E293B;">
+                        <div style="width: {drain_pct}%; background: #F59E0B; height: 100%; box-shadow: 0 0 10px #F59E0B; transition: width 1s ease-in-out;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;">
+                        <span>BURNOUT RISK</span><span style="color:#F8FAFC;">{burnout_pct}%</span>
+                    </div>
+                    <div style="width: 100%; background: rgba(15, 23, 42, 0.8); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid #1E293B;">
+                        <div style="width: {burnout_pct}%; background: #F43F5E; height: 100%; box-shadow: 0 0 10px #F43F5E; transition: width 1s ease-in-out;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="padding: 12px 20px 20px 20px; background: rgba(255,255,255,0.02); border-top: 1px solid #1E293B;">
+             <div style="color: {core_color}; font-size: 12px; line-height: 1.5; font-weight: 500;">
+                {insight_text}
+             </div>
+        </div>
+        
         <style>
-            @keyframes pulseFocus {{
-                0% {{ transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(139,92,246, 0.7); }}
-                70% {{ transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 0 15px rgba(139,92,246, 0); }}
-                100% {{ transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(139,92,246, 0); }}
-            }}
-            @keyframes floatDot {{
-                0% {{ margin-top: 0px; }}
-                50% {{ margin-top: -5px; }}
-                100% {{ margin-top: 0px; }}
+            @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
+            @keyframes hudPulse {{
+                0% {{ transform: scale(0.95); opacity: 0.3; }}
+                50% {{ transform: scale(1.1); opacity: 0.1; }}
+                100% {{ transform: scale(0.95); opacity: 0.3; }}
             }}
         </style>
-        <div style="margin-top: 18px; padding: 14px; background: rgba(255, 255, 255, 0.03); border-left: 3px solid {insight_color}; border-radius: 8px;">
-            <div style="color: {insight_color}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Behavioral Insight</div>
-            <div style="color: #E2E8F0; font-size: 12px; margin-top: 6px; line-height: 1.5;">{insight_text}</div>
-        </div>
     </div>
     """
     

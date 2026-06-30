@@ -1604,7 +1604,7 @@ with workspace_panel:
     </div>
     """
     
-    st.markdown(pipeline_html, unsafe_allow_html=True)
+    st.markdown(flatten_html(pipeline_html), unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

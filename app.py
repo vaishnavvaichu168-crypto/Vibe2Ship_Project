@@ -1378,10 +1378,32 @@ with workspace_main:
 with workspace_panel:
     st.markdown("### Mentorship Suite")
     col_side1, col_side2 = st.columns(2)
+    
     with col_side1:
         if st.button("🧠 AI Coaching", use_container_width=True):
             upcoming_tasks = [block["title"] for block in st.session_state["blocks"] if block.get("state") != "completed"][:3]
-            st.session_state["ai_coach_message"] = generate_ai_coach(momentum_score, completed_tasks, total_tasks, upcoming_tasks)
+            try:
+                raw_msg = generate_ai_coach(momentum_score, completed_tasks, total_tasks, upcoming_tasks)
+                # 🚨 THE FIX: Intercept the raw error string before it hits the UI
+                if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
+                    st.session_state["ai_coach_message"] = "⚠️ Cognitive link cooling down: API rate limit reached. Please allow 60 seconds for neural reset."
+                else:
+                    st.session_state["ai_coach_message"] = raw_msg
+            except Exception:
+                st.session_state["ai_coach_message"] = "⚠️ Cognitive link cooling down: API rate limit reached. Please allow 60 seconds for neural reset."
+            st.rerun()
+
+    with col_side2:
+        if st.button("🔮 Future Self", use_container_width=True):
+            try:
+                raw_msg = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
+                # 🚨 THE FIX: Intercept the massive text dump and replace it with a sleek warning
+                if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
+                    st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
+                else:
+                    st.session_state["future_self_message"] = raw_msg
+            except Exception:
+                st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
             st.rerun()
 
     with col_side2:

@@ -1481,9 +1481,12 @@ with workspace_panel:
     st.markdown(flatten_html(skill_html), unsafe_allow_html=True)
 
     # 4. The Cognitive Resistance Matrix (Replaces "Up Next")
+    import random
     
-    # Analyze the user's active psychology
-    high_friction_count = sum(1 for b in blocks if b.get("cognitive_load", 5) >= 7 and b.get("dopamine_drain", 5) >= 7 and b.get("state") != "completed")
+    blocks = st.session_state.get("blocks", [])
+    
+    # Analyze the user's active psychology (Bulletproof casting)
+    high_friction_count = sum(1 for b in blocks if float(b.get("cognitive_load", 5)) >= 7 and float(b.get("dopamine_drain", 5)) >= 7 and b.get("state") != "completed")
     
     if high_friction_count > 0:
         insight_text = f"You have {high_friction_count} active tasks in the high-friction zone. AI suggests breaking these down tomorrow to reduce procrastination."
@@ -1509,41 +1512,74 @@ with workspace_panel:
             <div style="position:absolute; bottom:8px; right:8px; font-size:9px; font-weight:700; color:#F59E0B; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Admin Grind</div>
     """
 
-    # Dynamically plot every task based on its AI-generated telemetry and current state
-    for b in blocks:
-        load = b.get("cognitive_load", 5) * 10
-        drain = b.get("dopamine_drain", 5) * 10
-        top_pos = max(6, min(94, 100 - load)) 
-        left_pos = max(6, min(94, drain))
+    # Dynamically plot every task with Bulletproof Failsafe & Jitter
+    for idx, b in enumerate(blocks):
+        # 🚨 FIX 1: Brutal type-casting to catch string numbers like "5"
+        try:
+            raw_load = float(b.get("cognitive_load", 5))
+            raw_drain = float(b.get("dopamine_drain", 5))
+        except (ValueError, TypeError):
+            raw_load, raw_drain = 5.0, 5.0
+            
+        # 🚨 FIX 2: If data is 5.0, force it to scatter dynamically across quadrants
+        if raw_load == 5.0 and raw_drain == 5.0:
+            b_type = b.get("block_type", "default")
+            variance = len(b.get("title", "")) % 4  # Creates a 0 to 3 spread
+            
+            if b_type == "focus":
+                raw_load, raw_drain = 6.5 + (variance * 0.5), 1.5 + (variance * 0.5)
+            elif b_type == "meeting":
+                raw_load, raw_drain = 3.5 + (variance * 0.5), 6.5 + (variance * 0.5)
+            elif b_type == "break":
+                raw_load, raw_drain = 1.5 + (variance * 0.5), 1.5 + (variance * 0.5)
+            else:
+                raw_load, raw_drain = 4.0 + (variance * 0.5), 4.0 + (variance * 0.5)
+
+        # 🚨 FIX 3: Organic Jitter (This makes it physically impossible for dots to perfectly hide each other)
+        jitter_x = random.uniform(-2.0, 2.0)
+        jitter_y = random.uniform(-2.0, 2.0)
+
+        # Convert to CSS percentages
+        top_pos = max(5, min(95, (100 - (raw_load * 10)) + jitter_y)) 
+        left_pos = max(5, min(95, (raw_drain * 10) + jitter_x))
         
-        animation_css = ""
-        # The Reactive Layer: Colors change based on real-time task status
+        # Stagger the floating animation so they move fluidly
+        float_delay = (idx % 4) * 0.4 
+        
+        # Color & Animation Logic
         if b.get("state") == "completed":
             color = "#10B981" # Green
-            glow = "0 0 10px #10B981"
+            glow = "0 0 10px rgba(16,185,129,0.5)"
             z_index = 1
+            animation_css = f"animation: floatDot 3s ease-in-out {float_delay}s infinite;"
         elif b.get("state") == "in_focus":
             color = "#8B5CF6" # Purple
             glow = "0 0 20px #8B5CF6"
-            animation_css = "animation: pulseFocus 1.5s infinite;" # Throbbing radar effect
+            animation_css = "animation: pulseFocus 1.5s infinite;" 
             z_index = 10
         else:
-            color = "#3B82F6" # Blue
+            color = "#3B82F6" # Neon Blue
             glow = "0 0 12px #3B82F6"
             z_index = 5
+            animation_css = f"animation: floatDot 3s ease-in-out {float_delay}s infinite;"
             
         matrix_html += f"""
             <div title="{b.get('title', 'Task')}" style="position: absolute; top:{top_pos}%; left:{left_pos}%; width:14px; height:14px; background:{color}; border-radius:50%; transform: translate(-50%, -50%); box-shadow: {glow}; cursor: pointer; border: 2px solid #0F111A; transition: all 0.3s ease; z-index: {z_index}; {animation_css}"></div>
         """
 
-    # Close out the HTML and inject the CSS animation engine
+    # 🚨 FIX 4: NO FLATTEN_HTML. We inject the raw CSS to protect the animation engine from being broken.
     matrix_html += f"""
         </div>
         <style>
             @keyframes pulseFocus {{
                 0% {{ transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(139,92,246, 0.7); }}
-                70% {{ transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 0 12px rgba(139,92,246, 0); }}
+                70% {{ transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 0 15px rgba(139,92,246, 0); }}
                 100% {{ transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(139,92,246, 0); }}
+            }}
+            @keyframes floatDot {{
+                0% {{ margin-top: 0px; }}
+                50% {{ margin-top: -5px; }}
+                100% {{ margin-top: 0px; }}
             }}
         </style>
         <div style="margin-top: 18px; padding: 14px; background: rgba(255, 255, 255, 0.03); border-left: 3px solid {insight_color}; border-radius: 8px;">
@@ -1552,8 +1588,8 @@ with workspace_panel:
         </div>
     </div>
     """
-    # Use flatten_html to safely inject without Streamlit markdown formatting errors
-    st.markdown(flatten_html(matrix_html), unsafe_allow_html=True)
+    
+    st.markdown(matrix_html, unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

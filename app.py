@@ -1408,26 +1408,6 @@ with workspace_panel:
 
     st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Performance Diagnostics</h3>", unsafe_allow_html=True)
 
-    with col_side2:
-        if st.button("🔮 Future Self", use_container_width=True):
-            try:
-                raw_msg = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
-                # 🚨 THE FIX: Intercept the massive text dump and replace it with a sleek warning
-                if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
-                    st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
-                else:
-                    st.session_state["future_self_message"] = raw_msg
-            except Exception:
-                st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
-            st.rerun()
-
-    with col_side2:
-        if st.button("🔮 Future Self", use_container_width=True):
-            st.session_state["future_self_message"] = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
-            st.rerun()
-
-    st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Performance Diagnostics</h3>", unsafe_allow_html=True)
-
     # 1. Focus Forecast
     st.markdown(f"""
         <div class="dashboard-card">

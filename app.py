@@ -1477,15 +1477,80 @@ with workspace_panel:
 
     st.markdown(flatten_html(skill_html), unsafe_allow_html=True)
 
-    # 4. Up Next Lists
-    up_next = [b for b in blocks if b.get("state") != "completed"][:3]
-    if up_next:
-        rows = "".join(f"""
-            <div class="up-next-row">
-                <span class="dot dot-{b.get('block_type', 'default')}"></span>
-                <div><div class="up-next-title">{b.get('title', '')}</div><div class="up-next-sub">{b.get('badge', '')}</div></div>
-            </div>""" for b in up_next)
-        st.markdown(flatten_html(f'<div class="dashboard-card"><div class="card-header">Up next</div><div style="margin-top:12px;">{rows}</div></div>'), unsafe_allow_html=True)
+    # 4. The Cognitive Resistance Matrix (Replaces "Up Next")
+    
+    # Analyze the user's active psychology
+    high_friction_count = sum(1 for b in blocks if b.get("cognitive_load", 5) >= 7 and b.get("dopamine_drain", 5) >= 7 and b.get("state") != "completed")
+    
+    if high_friction_count > 0:
+        insight_text = f"You have {high_friction_count} active tasks in the high-friction zone. AI suggests breaking these down tomorrow to reduce procrastination."
+        insight_color = "#F43F5E" # Warning Red
+    else:
+        insight_text = "Excellent task balance today. Low risk of psychological friction."
+        insight_color = "#10B981" # Safe Green
+
+    matrix_html = f"""
+    <div class="dashboard-card">
+        <div class="card-header" style="color: #F43F5E; letter-spacing: 1px;"><span class="header-icon">🧠</span> COGNITIVE RESISTANCE MATRIX</div>
+        <p style="font-size: 12.5px; color:#94A3B8; margin-top: 10px; margin-bottom: 18px; line-height: 1.5;">
+            Hover over dots to map task psychology. <br><span style="color:#E2E8F0;">X-Axis:</span> Dopamine Drain (Tedious ➔) <br><span style="color:#E2E8F0;">Y-Axis:</span> Cognitive Load (Hard ⇡)
+        </p>
+        
+        <div style="position: relative; width: 100%; aspect-ratio: 1.25/1; background: rgba(15, 23, 42, 0.4); border: 1px solid #1E293B; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+            <div style="position: absolute; top:50%; left:0; width:100%; height:1px; background: rgba(148, 163, 184, 0.2);"></div>
+            <div style="position: absolute; top:0; left:50%; width:1px; height:100%; background: rgba(148, 163, 184, 0.2);"></div>
+            
+            <div style="position:absolute; top:8px; left:8px; font-size:9px; font-weight:700; color:#3B82F6; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Deep Work</div>
+            <div style="position:absolute; top:8px; right:8px; font-size:9px; font-weight:700; color:#F43F5E; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Burnout Risk</div>
+            <div style="position:absolute; bottom:8px; left:8px; font-size:9px; font-weight:700; color:#10B981; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Recovery</div>
+            <div style="position:absolute; bottom:8px; right:8px; font-size:9px; font-weight:700; color:#F59E0B; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">Admin Grind</div>
+    """
+
+    # Dynamically plot every task based on its AI-generated telemetry and current state
+    for b in blocks:
+        load = b.get("cognitive_load", 5) * 10
+        drain = b.get("dopamine_drain", 5) * 10
+        top_pos = max(6, min(94, 100 - load)) 
+        left_pos = max(6, min(94, drain))
+        
+        animation_css = ""
+        # The Reactive Layer: Colors change based on real-time task status
+        if b.get("state") == "completed":
+            color = "#10B981" # Green
+            glow = "0 0 10px #10B981"
+            z_index = 1
+        elif b.get("state") == "in_focus":
+            color = "#8B5CF6" # Purple
+            glow = "0 0 20px #8B5CF6"
+            animation_css = "animation: pulseFocus 1.5s infinite;" # Throbbing radar effect
+            z_index = 10
+        else:
+            color = "#3B82F6" # Blue
+            glow = "0 0 12px #3B82F6"
+            z_index = 5
+            
+        matrix_html += f"""
+            <div title="{b.get('title', 'Task')}" style="position: absolute; top:{top_pos}%; left:{left_pos}%; width:14px; height:14px; background:{color}; border-radius:50%; transform: translate(-50%, -50%); box-shadow: {glow}; cursor: pointer; border: 2px solid #0F111A; transition: all 0.3s ease; z-index: {z_index}; {animation_css}"></div>
+        """
+
+    # Close out the HTML and inject the CSS animation engine
+    matrix_html += f"""
+        </div>
+        <style>
+            @keyframes pulseFocus {{
+                0% {{ transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(139,92,246, 0.7); }}
+                70% {{ transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 0 12px rgba(139,92,246, 0); }}
+                100% {{ transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(139,92,246, 0); }}
+            }}
+        </style>
+        <div style="margin-top: 18px; padding: 14px; background: rgba(255, 255, 255, 0.03); border-left: 3px solid {insight_color}; border-radius: 8px;">
+            <div style="color: {insight_color}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Behavioral Insight</div>
+            <div style="color: #E2E8F0; font-size: 12px; margin-top: 6px; line-height: 1.5;">{insight_text}</div>
+        </div>
+    </div>
+    """
+    # Use flatten_html to safely inject without Streamlit markdown formatting errors
+    st.markdown(flatten_html(matrix_html), unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

@@ -1380,8 +1380,7 @@ with workspace_panel:
     col_side1, col_side2 = st.columns(2)
     
     with col_side1:
-        # 🚨 THE FIX: Added a unique 'key' so Streamlit never gets confused
-        if st.button("🧠 AI Coaching", use_container_width=True, key="ai_coach_btn"):
+        if st.button("🧠 AI Coaching", use_container_width=True, key="ai_coach_btn_v2"):
             upcoming_tasks = [block["title"] for block in st.session_state["blocks"] if block.get("state") != "completed"][:3]
             try:
                 raw_msg = generate_ai_coach(momentum_score, completed_tasks, total_tasks, upcoming_tasks)
@@ -1394,8 +1393,7 @@ with workspace_panel:
             st.rerun()
 
     with col_side2:
-        # 🚨 THE FIX: Added a unique 'key' to bypass the duplicate error
-        if st.button("🔮 Future Self", use_container_width=True, key="future_self_btn"):
+        if st.button("🔮 Future Self", use_container_width=True, key="future_self_btn_v2"):
             try:
                 raw_msg = generate_future_self(momentum_score, completed_tasks, total_tasks, st.session_state.get("blocks", []))
                 if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or "SYSTEM CRASH" in raw_msg:
@@ -1405,6 +1403,8 @@ with workspace_panel:
             except Exception:
                 st.session_state["future_self_message"] = "⚠️ Neural projection paused: API rate limit reached. Please allow 60 seconds before calculating new timelines."
             st.rerun()
+
+    st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Performance Diagnostics</h3>", unsafe_allow_html=True)
 
     with col_side2:
         if st.button("🔮 Future Self", use_container_width=True):

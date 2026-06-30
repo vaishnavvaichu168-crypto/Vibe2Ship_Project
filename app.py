@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 import os
 import time
 import json
+import re
 from datetime import datetime
 from typing import List, Literal
 from dotenv import load_dotenv
@@ -1210,14 +1211,28 @@ with workspace_main:
                             response_schema=ScheduleResponse,
                         ),
                     )
-                    data = json.loads(response.text)
+                    
+                    # BRUTAL PARSING LOGIC: Strips out Markdown wrappers that crash json.loads
+                    raw_text = response.text
+                    match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+                    if match:
+                        raw_text = match.group(0)
+                        
+                    data = json.loads(raw_text)
                     blocks = data.get("blocks", DEFAULT_BLOCKS)
                     for block in blocks:
                         block["state"] = "ready"
 
+                    # 1. FORCE STATE OVERWRITE
                     st.session_state["blocks"] = blocks
                     
-                    # 🚨 NEW ADDITION: Save to disk immediately so it survives a refresh!
+                    # 2. PURGE OLD ANALYTICS CACHE 
+                    if "skill_tracker" in st.session_state:
+                        del st.session_state["skill_tracker"]
+                    if "radar" in st.session_state:
+                        del st.session_state["radar"]
+                    
+                    # 3. WRITE TO DISK
                     with open(DATA_FILE, "w") as f:
                         json.dump({
                             "blocks": st.session_state["blocks"],
@@ -1225,20 +1240,21 @@ with workspace_main:
                             "last_active_date": st.session_state.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
                         }, f)
                     
+                    # 4. CRITICAL FIX: FORCE UI RELOAD ON SUCCESS
+                    st.success("Matrix optimization complete. Re-initializing interface...")
+                    time.sleep(0.5) 
+                    st.rerun() 
+                    
                 except Exception as e:
                     error_msg = str(e)
-                    # 🚨 APEX FIX: Log the error, but DO NOT overwrite the matrix.
                     if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
                         st.warning("⚠️ Neural Link Overloaded: API rate limit reached. Utilizing existing timeline cache...", icon="⚡")
                     else:
+                        # THE ERROR MUST STAY ON SCREEN
                         st.error(f"System Malfunction: {error_msg}") 
                     
-                    # Ensure a baseline exists only if the session state is completely empty
                     if "blocks" not in st.session_state or not st.session_state["blocks"]:
-                        st.session_state["blocks"] = DEFAULT_BLOCKS
-                        
-                    # Exit the generation loop without touching DATA_FILE
-                    st.rerun()  
+                        st.session_state["blocks"] = DEFAULT_BLOCKS  
 
     st.markdown(render_timeline(blocks), unsafe_allow_html=True)
 

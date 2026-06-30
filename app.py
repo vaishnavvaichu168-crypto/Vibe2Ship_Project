@@ -1497,7 +1497,9 @@ with workspace_panel:
     # Convert AI scores (1-10) into HUD percentages (0-100%)
     load_pct = min(100, int((avg_load / 10.0) * 100))
     drain_pct = min(100, int((avg_drain / 10.0) * 100))
-    burnout_pct = min(100, int(((avg_load * avg_drain) / 100.0) * 100)) 
+    burnout_pct = min(100, int(((avg_load * avg_drain) / 100.0) * 100))
+    tasks_completed = YOUR_EXISTING_COMPLETED_VARIABLE  # <-- REPLACE THIS with your actual variable
+    total_tasks = YOUR_EXISTING_TOTAL_VARIABLE
 
     # Dynamic Momentum Vector (Derived directly from your Daily Focus Goal)
     focus_goal_pct = int((tasks_completed / total_tasks) * 100) if total_tasks > 0 else 0

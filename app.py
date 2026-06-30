@@ -1616,8 +1616,9 @@ with workspace_panel:
     </div>
     """
     
-    # 🚨 SURGICAL FIX: Remove flatten_html so the CSS animation engine actually works!
-    st.markdown(pipeline_html, unsafe_allow_html=True)
+    # 🚨 THE INDENTATION FIX: Strip leading spaces so Streamlit renders the UI, not a code block!
+    clean_html = "\n".join([line.strip() for line in pipeline_html.split("\n")])
+    st.markdown(clean_html, unsafe_allow_html=True)
 
     # 5. AI Coach Insights
     coach_message = st.session_state.get("ai_coach_message", "Press 🧠 AI Coaching to receive personalized guidance.")

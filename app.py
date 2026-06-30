@@ -669,13 +669,16 @@ if st.session_state.get("show_report", False):
                         # ONLY build mountains for reality (completed tasks)
                         if block.get("state") == "completed":
                             
-                            # Focus blocks make massive mountains. Meetings make hills. Breaks make ripples.
+                            # 🚨 THE UPGRADE: Use the live AI Cognitive Load to determine mountain height!
+                            raw_load = block.get("cognitive_load", 5)
+                            
                             if block.get("block_type") == "focus":
-                                intensity = 2.5
+                                # A level 10 cognitive load task makes a massive 3.5 mountain peak
+                                intensity = raw_load * 0.35 
                             elif block.get("block_type") == "meeting":
-                                intensity = 1.2
+                                intensity = raw_load * 0.20
                             else:
-                                intensity = 0.4
+                                intensity = 0.4 # Breaks remain flat ripples
                                 
                             # Calculate where this mountain goes on the timeline
                             center_x = int((idx + 1) * spacing)

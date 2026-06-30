@@ -1066,96 +1066,95 @@ with workspace_main:
         """, unsafe_allow_html=True)
         
     st.markdown("<h3 style='color: white; font-size: 18px; font-weight: 700; margin-bottom: 15px;'>Today's schedule</h3>", unsafe_allow_html=True)
+
     # ==========================================
-    # UPGRADED COGNITIVE REDLINE SAFEGUARD CORE
+    # UPGRADED COGNITIVE REDLINE SAFEGUARD CORE (HACKATHON SAFE)
     # ==========================================
+    # 1. Initialize state variables for safety and uniqueness
+    if "dismiss_redline" not in st.session_state:
+        st.session_state["dismiss_redline"] = False
+    if "break_counter" not in st.session_state:
+        st.session_state["break_counter"] = 1
+
     redline_risk = False
     risk_index = -1
     is_afternoon = False
 
-    # Scan for consecutive high-intensity focus sprints
+    # 2. Scan for consecutive high-intensity focus sprints
     for i in range(len(blocks) - 1):
         if blocks[i].get("block_type") == "focus" and blocks[i+1].get("block_type") == "focus":
             redline_risk = True
             risk_index = i
-            # Check if the danger zone falls in the afternoon/evening
             if "PM" in blocks[i].get("time", ""):
                 is_afternoon = True
             break
 
-    if redline_risk:
-        # Configuration presets based on biological time matching window parameters
+    # 3. Render only if risk exists AND user hasn't dismissed it
+    if redline_risk and not st.session_state["dismiss_redline"]:
         if is_afternoon:
             header_tag = "🚨 [Circadian Slump Vulnerability]"
             banner_bg = "rgba(239, 68, 68, 0.06)"
             banner_border = "rgba(239, 68, 68, 0.25)"
             text_color = "#F87171"
-            description_text = "Warning: Consecutive high-intensity focus blocks detected during the natural post-lunch biological energy drop. Burnout risk is amplified by 2.5x."
+            description_text = "Warning: Consecutive high-intensity focus blocks detected during the afternoon energy drop. Burnout risk amplified."
         else:
             header_tag = "⚠️ [Cortisol Peak Overdrive Alert]"
             banner_bg = "rgba(245, 158, 11, 0.06)"
             banner_border = "rgba(245, 158, 11, 0.25)"
             text_color = "#F59E0B"
-            description_text = "You are scheduling intense cognitive sprints during your peak morning neurological window. Running these back-to-back risks premature mental exhaustion by noon."
+            description_text = "Intense cognitive sprints scheduled back-to-back. Risk of premature mental exhaustion by noon."
 
-        # Render the custom circadian banner
         st.markdown(f"""
-            <div style="background: {banner_bg}; border: 1px solid {banner_border}; border-radius: 14px; padding: 18px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div style="background: {banner_bg}; border: 1px solid {banner_border}; border-radius: 14px; padding: 18px; margin-bottom: 22px;">
                 <div style="display: flex; align-items: flex-start; gap: 14px;">
                     <div style="background: {text_color}; width: 6px; height: 38px; border-radius: 4px; flex-shrink: 0; margin-top: 3px;"></div>
                     <div>
-                        <div style="color: {text_color}; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">{header_tag}</div>
-                        <div style="color: #94A3B8; font-size: 13px; margin-top: 4px; line-height: 1.5; font-weight: 500;">{description_text}</div>
+                        <div style="color: {text_color}; font-weight: 800; font-size: 13px; text-transform: uppercase;">{header_tag}</div>
+                        <div style="color: #94A3B8; font-size: 13px; margin-top: 4px;">{description_text}</div>
                     </div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
-        # Dual-action recovery selection matrix row split layout
         btn_col1, btn_col2 = st.columns(2, gap="small")
-        clicked_quiet = False
-        clicked_somatic = False
-
+        
         with btn_col1:
-            if st.button("🧘 Inject Quiet Decompression", use_container_width=True):
-                clicked_quiet = True
+            if st.button("🛡️ Insert Cognitive Break", use_container_width=True):
+                # GUARANTEE UNIQUE NAMES: Grab the counter and apply it
+                current_break_num = st.session_state["break_counter"]
+                
+                new_break = {
+                    "time": "Buffer Slot",
+                    "title": f"🛡️ Neural Break {current_break_num}",
+                    "context": "Mandatory cognitive decompression phase.",
+                    "block_type": "break",
+                    "badge": "Break",
+                    "high_intensity": False,
+                    "state": "ready"
+                }
+                
+                # Increment the counter so the next one is 100% unique
+                st.session_state["break_counter"] += 1
+                
+                # Safely insert the break right between the two focus blocks
+                st.session_state["blocks"].insert(risk_index + 1, new_break)
+                
+                if "skill_tracker" in st.session_state:
+                    del st.session_state["skill_tracker"]
+                    
+                with open(DATA_FILE, "w") as f:
+                    json.dump({
+                        "blocks": st.session_state["blocks"],
+                        "streak": st.session_state.get("streak", 1),
+                        "last_active_date": st.session_state.get("last_active_date", "")
+                    }, f)
+                st.rerun()
 
         with btn_col2:
-            if st.button("🚶 Inject Somatic Movement", use_container_width=True):
-                clicked_somatic = True
-
-        # Process the structural mitigation if either button state triggers True
-        if clicked_quiet or clicked_somatic:
-            mitigated_blocks = []
-
-            # Setup specific task text values based on which action was selected
-            break_title = "Mindfulness Reset" if clicked_quiet else "Physical Circulation Walk"
-            break_context = "Decompress working memory caches, lower heart rate, and clear open screen clutter." if clicked_quiet else "Step away from screens, stretch, and hydrate to combat biological sluggishness."
-
-            for idx in range(len(st.session_state["blocks"])):
-                mitigated_blocks.append(st.session_state["blocks"][idx])
-                # Insert the custom break pill exactly between the two conflicting elements
-                if idx == risk_index:
-                    mitigated_blocks.append({
-                        "time": "Buffer Slot",
-                        "title": f"🛡️ {break_title}",
-                        "context": break_context,
-                        "block_type": "break",
-                        "badge": "Break",
-                        "high_intensity": False,
-                        "state": "ready"
-                    })
-
-            st.session_state["blocks"] = mitigated_blocks
-            if "skill_tracker" in st.session_state:
-                del st.session_state["skill_tracker"]
-            with open(DATA_FILE, "w") as f:
-                json.dump({
-                    "blocks": st.session_state["blocks"],
-                    "streak": st.session_state.get("streak", 1),
-                    "last_active_date": st.session_state.get("last_active_date", "")
-                }, f)
-            st.rerun()
+            if st.button("❌ Dismiss Warning", use_container_width=True):
+                # Safely hide the UI element without touching the schedule
+                st.session_state["dismiss_redline"] = True
+                st.rerun()
             # ==========================================
             # 🚨 AI TACTICAL PIVOT BANNER (V2 - ERROR SURFACING)
             # ==========================================
@@ -1225,7 +1224,8 @@ with workspace_main:
 
                     # 1. FORCE STATE OVERWRITE
                     st.session_state["blocks"] = blocks
-                    
+                    st.session_state["dismiss_redline"] = False # <--- ADD THIS
+                    st.session_state["break_counter"] = 1
                     # 2. PURGE OLD ANALYTICS CACHE 
                     if "skill_tracker" in st.session_state:
                         del st.session_state["skill_tracker"]
